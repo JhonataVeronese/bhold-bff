@@ -1,0 +1,25 @@
+# PostgreSQL local para desenvolvimento e testes.
+# Uso: docker compose up -d
+# Porta 5433 no host → 5432 no container (evita conflito com Postgres instalado na máquina).
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: bholder-bff-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: bhold_api
+    ports:
+      - '5433:5432'
+    volumes:
+      - bhold_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d bhold_api']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  bhold_pgdata:

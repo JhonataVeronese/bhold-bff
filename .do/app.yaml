@@ -1,0 +1,16 @@
+# DigitalOcean App Platform - Template de configuração
+#
+# Ao criar o app no painel: Apps > Create App > GitHub e selecione o repositório.
+# O App Platform detecta yarn.lock e usa Yarn automaticamente.
+#
+# Comandos a configurar no painel (Settings > App-Level > Build & Run):
+#   Build Command: yarn build && yarn prisma:generate && yarn migrate
+#   Run Command: yarn start
+#
+# Variáveis de ambiente necessárias (inclua DATABASE_URL com scope BUILD_AND_RUN_TIME
+# para as migrations funcionarem no build):
+#   - DATABASE_URL
+#   - ENVIRONMENT, PORT (App Platform define PORT automaticamente)
+#   - BHOLD_API_TOKEN (opcional; se definido, o BFF deve enviar Authorization: Bearer)
+#   - O front/BFF deve enviar X-Tenant-Id nas rotas de cadastro (fornecedores, contas, usuários)
+#   - Demais variáveis do .env.example

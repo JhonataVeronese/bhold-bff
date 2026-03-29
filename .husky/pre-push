@@ -1,0 +1,19 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "[Husky pre-push]"
+
+case $local_branch_name in
+  "master")
+    tput setaf 1; tput bold; echo "You can't push to master!"; tput sgr0
+    exit 1
+  ;;
+  "main")
+    tput setaf 1; tput bold; echo "You can't push to main!"; tput sgr0
+    exit 1
+  ;;
+  "development")
+    tput setaf 1; tput bold; echo "You can't push to development!"; tput sgr0
+    exit 1
+  ;;
+esac

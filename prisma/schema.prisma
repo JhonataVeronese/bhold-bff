@@ -1,0 +1,147 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UsuarioPerfil {
+  /// Plataforma (cadastro de tenants/usuários; testes). Vinculado ao tenant "system" no seed.
+  SUPER
+  ADMIN
+  OPERADOR
+  LEITURA
+}
+
+enum TipoContaBancaria {
+  CORRENTE
+  POUPANCA
+  PAGAMENTO
+}
+
+enum FinanceType {
+  PAYABLE
+  RECEIVABLE
+}
+
+enum RecurrenceType {
+  UNICA
+  MENSAL
+  ANUAL
+  @@map("RecurrenceType")
+}
+
+/// Empresa / organização (isolamento multi-tenant).
+model Tenant {
+  id           Int      @id @default(autoincrement())
+  /// Razão social / nome legal.
+  nome         String
+  /// Identificador único (ex.: subdomínio), minúsculo.
+  slug         String   @unique
+  nomeFantasia String
+  /// CNPJ normalizado (14 dígitos), único quando informado.
+  cnpj         String?  @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  fornecedores           Fornecedor[]
+  contasBancarias        ContaBancaria[]
+  usuarios               Usuario[]
+  clientes               Cliente[]
+  lancamentosFinanceiros LancamentoFinanceiro[]
+}
+
+model Fornecedor {
+  id                     Int                  @id @default(autoincrement())
+  tenantId               Int
+  tenant                 Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cnpj                   String
+  razaoSocial            String
+  nomeFantasia           String
+  municipio              String
+  uf                     String               @db.VarChar(2)
+  payload                Json?
+  createdAt              DateTime             @default(now())
+  contasBancarias        ContaBancaria[]
+  lancamentosFinanceiros LancamentoFinanceiro[]
+
+  @@unique([tenantId, cnpj])
+  @@index([tenantId])
+}
+
+model Cliente {
+  id                     Int                  @id @default(autoincrement())
+  tenantId               Int
+  tenant                 Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  nome                   String
+  documento              String?
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+  lancamentosFinanceiros LancamentoFinanceiro[]
+
+  @@index([tenantId])
+}
+
+model ContaBancaria {
+  id                     Int               @id @default(autoincrement())
+  tenantId               Int
+  tenant                 Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  fornecedorId           Int
+  fornecedor             Fornecedor        @relation(fields: [fornecedorId], references: [id], onDelete: Cascade)
+  bankIspb               String
+  bankCode               Int?
+  bankFullName           String
+  agencia                String
+  agenciaDigito          String?
+  conta                  String
+  contaDigito            String?
+  tipoConta              TipoContaBancaria
+  pixChave               String            @default("")
+  createdAt              DateTime          @default(now())
+  lancamentosFinanceiros LancamentoFinanceiro[]
+
+  @@index([tenantId])
+}
+
+model LancamentoFinanceiro {
+  id                    Int             @id @default(autoincrement())
+  tenantId              Int
+  tenant                Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  type                  FinanceType
+  valor                 Decimal         @db.Decimal(18, 2)
+  dataVencimento        DateTime        @db.Date
+  dataPagamento         DateTime?       @db.Date
+  contaBancariaId       Int
+  contaBancaria         ContaBancaria   @relation(fields: [contaBancariaId], references: [id], onDelete: Restrict)
+  fornecedorId          Int?
+  fornecedor            Fornecedor?     @relation(fields: [fornecedorId], references: [id], onDelete: Restrict)
+  clienteId             Int?
+  cliente               Cliente?        @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  descricao             String          @default("")
+  recorrenciaAtiva      Boolean         @default(false)
+  recorrenciaTipo       RecurrenceType
+  recorrenciaQuantidade Int             @default(1)
+  observacao            String          @default("")
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, type])
+}
+
+model Usuario {
+  id        Int            @id @default(autoincrement())
+  tenantId  Int
+  tenant    Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  nome      String
+  email     String
+  senhaHash String
+  perfil    UsuarioPerfil
+  ativo     Boolean        @default(true)
+  createdAt DateTime       @default(now())
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+}

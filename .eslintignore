@@ -1,0 +1,13 @@
+/*.js
+node_modules
+dist
+*.config.ts
+*.pdf
+*.feature
+*.jpeg
+*.jpg
+*.png
+*.gif
+*.ofc
+*.ofx
+extract.txt
