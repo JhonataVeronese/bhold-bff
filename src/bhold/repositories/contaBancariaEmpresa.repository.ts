@@ -1,17 +1,16 @@
 import { TipoContaBancaria } from '@prisma/client';
 import { prisma } from '../../infra/db/prisma/client';
 
-export const contaBancariaRepository = {
+export const contaBancariaEmpresaRepository = {
 	listByTenant(tenantId: number) {
-		return prisma.contaBancaria.findMany({
+		return prisma.contaBancariaEmpresa.findMany({
 			where: { tenantId },
-			include: { fornecedor: true },
 			orderBy: { createdAt: 'desc' }
 		});
 	},
 
 	findByIdInTenant(tenantId: number, id: number) {
-		return prisma.contaBancaria.findFirst({
+		return prisma.contaBancariaEmpresa.findFirst({
 			where: { id, tenantId }
 		});
 	},
@@ -19,7 +18,6 @@ export const contaBancariaRepository = {
 	create(
 		tenantId: number,
 		data: {
-			fornecedorId: number;
 			bankIspb: string;
 			bankCode: number | null;
 			bankFullName: string;
@@ -31,10 +29,9 @@ export const contaBancariaRepository = {
 			pixChave: string;
 		}
 	) {
-		return prisma.contaBancaria.create({
+		return prisma.contaBancariaEmpresa.create({
 			data: {
 				tenantId,
-				fornecedorId: data.fornecedorId,
 				bankIspb: data.bankIspb,
 				bankCode: data.bankCode,
 				bankFullName: data.bankFullName,
@@ -44,8 +41,28 @@ export const contaBancariaRepository = {
 				contaDigito: data.contaDigito,
 				tipoConta: data.tipoConta,
 				pixChave: data.pixChave
-			},
-			include: { fornecedor: true }
+			}
 		});
+	},
+
+	countLancamentos(tenantId: number, contaBancariaEmpresaId: number) {
+		return prisma.lancamentoFinanceiro.count({
+			where: { tenantId, contaBancariaEmpresaId }
+		});
+	},
+
+	async deleteByIdInTenant(tenantId: number, id: number) {
+		const existing = await prisma.contaBancariaEmpresa.findFirst({ where: { id, tenantId } });
+		if (!existing) {
+			return 'not_found' as const;
+		}
+		const n = await prisma.lancamentoFinanceiro.count({
+			where: { tenantId, contaBancariaEmpresaId: id }
+		});
+		if (n > 0) {
+			return 'has_lancamentos' as const;
+		}
+		await prisma.contaBancariaEmpresa.delete({ where: { id } });
+		return 'deleted' as const;
 	}
 };

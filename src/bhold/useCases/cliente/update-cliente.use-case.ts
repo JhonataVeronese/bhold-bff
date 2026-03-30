@@ -2,13 +2,18 @@ import { Prisma } from '@prisma/client';
 import { HttpError } from '../../http/HttpError';
 import { clienteRepository } from '../../repositories/cliente.repository';
 import { extractFornecedorCampos, validateFornecedorCreate } from '../fornecedor/parse-fornecedor-body';
+import { parsePositiveInt } from '../../utils/strings';
 import { mapClienteToResponse } from './cliente.mapper';
 
-export async function createClienteUseCase(tenantId: number, body: Record<string, unknown>) {
+export async function updateClienteUseCase(tenantId: number, idRaw: unknown, body: Record<string, unknown>) {
+	const id = parsePositiveInt(idRaw);
+	if (id === null) {
+		throw new HttpError(400, 'id inválido');
+	}
 	const extracted = extractFornecedorCampos(body);
 	validateFornecedorCreate(extracted);
 	try {
-		const created = await clienteRepository.create(tenantId, {
+		const updated = await clienteRepository.update(tenantId, id, {
 			cnpj: extracted.cnpj,
 			razaoSocial: extracted.razaoSocial,
 			nomeFantasia: extracted.nomeFantasia,
@@ -16,8 +21,14 @@ export async function createClienteUseCase(tenantId: number, body: Record<string
 			uf: extracted.uf,
 			payload: body as Prisma.InputJsonValue
 		});
-		return mapClienteToResponse(created);
+		if (!updated) {
+			throw new HttpError(404, 'Cliente não encontrado');
+		}
+		return mapClienteToResponse(updated);
 	} catch (e) {
+		if (e instanceof HttpError) {
+			throw e;
+		}
 		if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
 			throw new HttpError(409, 'Já existe cliente com este CNPJ neste tenant');
 		}

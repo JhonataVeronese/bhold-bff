@@ -169,6 +169,14 @@ export async function getDashboardFinanceiroUseCase(tenantId: number, query: Rec
 
 	const recebTotalMesUf = await dashboardFinanceiroRepository.receivablesTotalInRange(tenantId, inicioMes, fimMes);
 
+	const recebUfs = await dashboardFinanceiroRepository.receivablesSumByCustomerUf(tenantId, inicioMes, fimMes);
+	const totalRecebUf = recebUfs.reduce((s, r) => s + (r.total ? r.total.toNumber() : 0), 0);
+	const recebimentosPorUfLista = recebUfs.map((r) => ({
+		uf: r.uf,
+		valor: r.total ? r.total.toNumber() : 0,
+		percentual: totalRecebUf > 0 && r.total ? (r.total.toNumber() / totalRecebUf) * 100 : 0
+	}));
+
 	return {
 		meta: {
 			geradoEm: now.toISOString(),
@@ -228,10 +236,11 @@ export async function getDashboardFinanceiroUseCase(tenantId: number, query: Rec
 			categorias
 		},
 		abrangenciaPorEstado: {
-			fonte: 'fornecedor.uf em lançamentos a pagar (caixa no mês)',
+			fonte: 'fornecedor.uf em contas a pagar; cliente.uf em contas a receber (caixa no mês)',
 			recebimentos: {
 				total: recebTotalMesUf,
-				nota: 'Cliente não possui UF no modelo; mapa só reflete pagamentos por UF.'
+				porUf: recebimentosPorUfLista,
+				nota: 'Total recebido no mês; porUf agrupa pelo UF do cliente vinculado ao lançamento.'
 			},
 			pagamentosPorUf: pagamentosPorUfLista
 		}

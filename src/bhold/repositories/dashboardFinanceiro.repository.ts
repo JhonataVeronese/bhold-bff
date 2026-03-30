@@ -166,8 +166,24 @@ export const dashboardFinanceiroRepository = {
 		`;
 	},
 
-	/** Recebimentos: não há UF em Cliente; retorna total único para referência. */
+	/** Total de recebimentos quitados no período (todos os lançamentos a receber). */
 	async receivablesTotalInRange(tenantId: number, start: Date, end: Date) {
 		return this.sumPaidInRange(tenantId, 'RECEIVABLE', start, end);
+	},
+
+	/** Recebimentos agregados por UF (cliente). */
+	async receivablesSumByCustomerUf(tenantId: number, start: Date, end: Date): Promise<UfValorRow[]> {
+		return prisma.$queryRaw<UfValorRow[]>`
+			SELECT c.uf AS uf, SUM(l.valor) AS total
+			FROM "LancamentoFinanceiro" l
+			INNER JOIN "Cliente" c ON c.id = l."clienteId"
+			WHERE l."tenantId" = ${tenantId}
+				AND l.type = 'RECEIVABLE'
+				AND l."dataPagamento" IS NOT NULL
+				AND l."dataPagamento" >= ${start}
+				AND l."dataPagamento" <= ${end}
+			GROUP BY c.uf
+			ORDER BY total DESC
+		`;
 	}
 };

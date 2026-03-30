@@ -4,6 +4,7 @@ import { publicRouter } from '../../../bhold/routes/public.routes';
 import { clienteRouter } from '../../../bhold/routes/cliente.routes';
 import { contaBancariaRouter } from '../../../bhold/routes/conta-bancaria.routes';
 import { fornecedorRouter } from '../../../bhold/routes/fornecedor.routes';
+import { financeiroExtratoRouter } from '../../../bhold/routes/financeiro-extrato.routes';
 import { financeiroRouter } from '../../../bhold/routes/financeiro.routes';
 import { tenantRouter } from '../../../bhold/routes/tenant.routes';
 import { usuarioRouter } from '../../../bhold/routes/usuario.routes';
@@ -41,6 +42,7 @@ router.use(requireTenantMiddleware);
 router.use('/fornecedores', fornecedorRouter);
 router.use('/contas-bancarias', contaBancariaRouter);
 router.use('/clientes', clienteRouter);
+router.use('/financeiro', financeiroExtratoRouter);
 router.use(financeiroRouter);
 
 export { router };

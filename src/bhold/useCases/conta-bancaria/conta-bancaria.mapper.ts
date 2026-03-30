@@ -1,4 +1,4 @@
-import type { ContaBancaria, Fornecedor } from '@prisma/client';
+import type { Cliente, ContaBancariaEmpresa, ContaBancariaTerceiro, Fornecedor } from '@prisma/client';
 import { TipoContaBancaria } from '@prisma/client';
 import { HttpError } from '../../http/HttpError';
 import { str } from '../../utils/strings';
@@ -35,30 +35,45 @@ function formatConta(conta: string, digito?: string | null): string {
 	return d ? `${conta}-${d}` : conta;
 }
 
-export function mapContaBancariaListItem(r: ContaBancaria & { fornecedor: Fornecedor }) {
+export function mapContaBancariaEmpresaRow(c: ContaBancariaEmpresa) {
+	return {
+		id: String(c.id),
+		escopo: 'empresa' as const,
+		bankFullName: c.bankFullName,
+		bankCode: c.bankCode,
+		agencia: formatAgencia(c.agencia, c.agenciaDigito),
+		conta: formatConta(c.conta, c.contaDigito),
+		tipoConta: tipoContaToJson(c.tipoConta),
+		cadastradoEm: c.createdAt.toISOString()
+	};
+}
+
+export type ContaTerceiroComRelacoes = ContaBancariaTerceiro & {
+	fornecedor: Fornecedor | null;
+	cliente: Cliente | null;
+};
+
+export function mapContaBancariaTerceiroRow(r: ContaTerceiroComRelacoes) {
+	const tipoTerceiro = r.fornecedorId != null ? ('fornecedor' as const) : ('cliente' as const);
+	const terceiroNome =
+		tipoTerceiro === 'fornecedor' && r.fornecedor
+			? r.fornecedor.nomeFantasia || r.fornecedor.razaoSocial
+			: r.cliente
+				? r.cliente.nomeFantasia || r.cliente.razaoSocial
+				: '';
+
 	return {
 		id: String(r.id),
-		fornecedorId: String(r.fornecedorId),
-		fornecedorNome: r.fornecedor.nomeFantasia || r.fornecedor.razaoSocial,
+		escopo: 'terceiro' as const,
+		tipoTerceiro,
+		fornecedorId: r.fornecedorId != null ? String(r.fornecedorId) : null,
+		clienteId: r.clienteId != null ? String(r.clienteId) : null,
+		terceiroNome,
 		bankFullName: r.bankFullName,
 		bankCode: r.bankCode,
 		agencia: formatAgencia(r.agencia, r.agenciaDigito),
 		conta: formatConta(r.conta, r.contaDigito),
 		tipoConta: tipoContaToJson(r.tipoConta),
 		cadastradoEm: r.createdAt.toISOString()
-	};
-}
-
-export function mapContaBancariaCreated(created: ContaBancaria & { fornecedor: Fornecedor }) {
-	return {
-		id: String(created.id),
-		fornecedorId: String(created.fornecedorId),
-		fornecedorNome: created.fornecedor.nomeFantasia || created.fornecedor.razaoSocial,
-		bankFullName: created.bankFullName,
-		bankCode: created.bankCode,
-		agencia: formatAgencia(created.agencia, created.agenciaDigito),
-		conta: formatConta(created.conta, created.contaDigito),
-		tipoConta: tipoContaToJson(created.tipoConta),
-		cadastradoEm: created.createdAt.toISOString()
 	};
 }

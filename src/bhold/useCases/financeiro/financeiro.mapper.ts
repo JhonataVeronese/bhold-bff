@@ -1,7 +1,12 @@
-import type { ContaBancaria } from '@prisma/client';
+import type { ContaBancariaEmpresa, ContaBancariaTerceiro } from '@prisma/client';
 import { FinanceType, RecurrenceType } from '@prisma/client';
 import type { LancamentoComRelacoes } from '../../repositories/lancamentoFinanceiro.repository';
 import { formatDateToYmd } from '../../utils/dates';
+
+type ContaBancoRotulo = Pick<
+	ContaBancariaEmpresa,
+	'bankFullName' | 'agencia' | 'agenciaDigito' | 'conta' | 'contaDigito'
+>;
 
 function formatAgencia(agencia: string, digito?: string | null): string {
 	const t = digito?.trim();
@@ -13,10 +18,18 @@ function formatConta(conta: string, digito?: string | null): string {
 	return t ? `${conta}-${t}` : conta;
 }
 
-export function buildContaBancariaNome(conta: ContaBancaria): string {
+function buildContaBankLabel(conta: ContaBancoRotulo): string {
 	const ag = formatAgencia(conta.agencia, conta.agenciaDigito);
 	const c = formatConta(conta.conta, conta.contaDigito);
 	return `${conta.bankFullName} · Ag. ${ag} · ${c}`;
+}
+
+export function buildContaBancariaNome(conta: ContaBancariaEmpresa): string {
+	return buildContaBankLabel(conta);
+}
+
+export function buildContaBancariaTerceiroNome(conta: ContaBancariaTerceiro): string {
+	return buildContaBankLabel(conta);
 }
 
 export function typeToJson(value: FinanceType): 'payable' | 'receivable' {
@@ -51,8 +64,11 @@ export function mapLancamentoToRow(row: LancamentoComRelacoes) {
 			throw new Error('Lançamento a receber sem cliente vinculado');
 		}
 		counterpartyId = row.clienteId;
-		counterpartyName = row.cliente.nome;
+		counterpartyName = row.cliente.nomeFantasia || row.cliente.razaoSocial;
 	}
+
+	const ce = row.contaBancariaEmpresa;
+	const ct = row.contaBancariaTerceiro;
 
 	return {
 		id: String(row.id),
@@ -60,8 +76,12 @@ export function mapLancamentoToRow(row: LancamentoComRelacoes) {
 		valor: row.valor.toNumber(),
 		dataVencimento: formatDateToYmd(row.dataVencimento),
 		dataPagamento: row.dataPagamento ? formatDateToYmd(row.dataPagamento) : null,
-		contaBancariaId: String(row.contaBancariaId),
-		contaBancariaNome: buildContaBancariaNome(row.contaBancaria),
+		/** Id da conta da empresa (caixa). Mantém o nome `contaBancariaId` por compatibilidade com clientes antigos. */
+		contaBancariaId: String(row.contaBancariaEmpresaId),
+		contaBancariaEmpresaId: String(row.contaBancariaEmpresaId),
+		contaBancariaNome: buildContaBancariaNome(ce),
+		contaBancariaTerceiroId: row.contaBancariaTerceiroId != null ? String(row.contaBancariaTerceiroId) : null,
+		contaBancariaTerceiroNome: ct != null ? buildContaBancariaTerceiroNome(ct) : null,
 		counterpartyId: String(counterpartyId),
 		counterpartyName,
 		descricao: row.descricao,

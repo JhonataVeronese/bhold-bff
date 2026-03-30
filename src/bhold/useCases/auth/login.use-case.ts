@@ -48,9 +48,12 @@ export async function loginUseCase(body: Record<string, unknown>) {
 		perfil: user.perfil
 	});
 
+	const usuario = mapUsuarioAuthResponse(user);
+
 	return {
 		accessToken,
 		tokenType: 'Bearer' as const,
-		user: mapUsuarioAuthResponse(user)
+		usuario,
+		user: usuario
 	};
 }

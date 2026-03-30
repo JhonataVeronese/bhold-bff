@@ -5,5 +5,6 @@ const fornecedorRouter = Router();
 
 fornecedorRouter.get('/', fornecedorController.list);
 fornecedorRouter.post('/', fornecedorController.create);
+fornecedorRouter.delete('/:id', fornecedorController.delete);
 
 export { fornecedorRouter };

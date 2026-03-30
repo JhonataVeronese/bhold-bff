@@ -2,7 +2,8 @@ import { FinanceType, Prisma, RecurrenceType } from '@prisma/client';
 import { prisma } from '../../infra/db/prisma/client';
 
 const includeRelacoes = {
-	contaBancaria: true,
+	contaBancariaEmpresa: true,
+	contaBancariaTerceiro: true,
 	fornecedor: true,
 	cliente: true
 } satisfies Prisma.LancamentoFinanceiroInclude;
@@ -12,6 +13,71 @@ export type LancamentoComRelacoes = Prisma.LancamentoFinanceiroGetPayload<{
 }>;
 
 export const lancamentoFinanceiroRepository = {
+	/**
+	 * IDs ordenados por COALESCE(dataPagamento, dataVencimento) DESC (extrato).
+	 * Paginação aplicada na ordem correta.
+	 */
+	async listIdsExtratoMesOrdenados(
+		tenantId: number,
+		contaBancariaEmpresaId: number,
+		start: Date,
+		end: Date,
+		skip: number,
+		take: number
+	): Promise<number[]> {
+		const rows = await prisma.$queryRaw<Array<{ id: number }>>(
+			Prisma.sql`
+				SELECT l.id
+				FROM "LancamentoFinanceiro" l
+				WHERE l."tenantId" = ${tenantId}
+					AND l."contaBancariaEmpresaId" = ${contaBancariaEmpresaId}
+					AND (
+						(l."dataPagamento" IS NOT NULL AND l."dataPagamento" >= ${start}::date AND l."dataPagamento" <= ${end}::date)
+						OR
+						(l."dataPagamento" IS NULL AND l."dataVencimento" >= ${start}::date AND l."dataVencimento" <= ${end}::date)
+					)
+				ORDER BY COALESCE(l."dataPagamento", l."dataVencimento") DESC
+				LIMIT ${take} OFFSET ${skip}
+			`
+		);
+		return rows.map((r) => r.id);
+	},
+
+	async countExtratoMes(
+		tenantId: number,
+		contaBancariaEmpresaId: number,
+		start: Date,
+		end: Date
+	): Promise<number> {
+		const r = await prisma.$queryRaw<[{ c: bigint }]>(
+			Prisma.sql`
+				SELECT COUNT(*)::bigint AS c
+				FROM "LancamentoFinanceiro" l
+				WHERE l."tenantId" = ${tenantId}
+					AND l."contaBancariaEmpresaId" = ${contaBancariaEmpresaId}
+					AND (
+						(l."dataPagamento" IS NOT NULL AND l."dataPagamento" >= ${start}::date AND l."dataPagamento" <= ${end}::date)
+						OR
+						(l."dataPagamento" IS NULL AND l."dataVencimento" >= ${start}::date AND l."dataVencimento" <= ${end}::date)
+					)
+			`
+		);
+		return Number(r[0]?.c ?? 0);
+	},
+
+	async findManyByIdsInOrder(ids: number[]) {
+		if (ids.length === 0) {
+			return [];
+		}
+		const rows = await prisma.lancamentoFinanceiro.findMany({
+			where: { id: { in: ids } },
+			include: includeRelacoes
+		});
+		const order = new Map(ids.map((id, i) => [id, i]));
+		rows.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
+		return rows;
+	},
+
 	listByTenant(tenantId: number, type?: FinanceType) {
 		return prisma.lancamentoFinanceiro.findMany({
 			where: {
@@ -30,7 +96,8 @@ export const lancamentoFinanceiroRepository = {
 			valor: Prisma.Decimal;
 			dataVencimento: Date;
 			dataPagamento: Date | null;
-			contaBancariaId: number;
+			contaBancariaEmpresaId: number;
+			contaBancariaTerceiroId: number | null;
 			fornecedorId: number | null;
 			clienteId: number | null;
 			descricao: string;
@@ -47,7 +114,8 @@ export const lancamentoFinanceiroRepository = {
 				valor: data.valor,
 				dataVencimento: data.dataVencimento,
 				dataPagamento: data.dataPagamento,
-				contaBancariaId: data.contaBancariaId,
+				contaBancariaEmpresaId: data.contaBancariaEmpresaId,
+				contaBancariaTerceiroId: data.contaBancariaTerceiroId,
 				fornecedorId: data.fornecedorId,
 				clienteId: data.clienteId,
 				descricao: data.descricao,
@@ -55,6 +123,62 @@ export const lancamentoFinanceiroRepository = {
 				recorrenciaTipo: data.recorrenciaTipo,
 				recorrenciaQuantidade: data.recorrenciaQuantidade,
 				observacao: data.observacao
+			},
+			include: includeRelacoes
+		});
+	},
+
+	findByIdInTenantAndType(tenantId: number, id: number, type: FinanceType) {
+		return prisma.lancamentoFinanceiro.findFirst({
+			where: { id, tenantId, type },
+			include: includeRelacoes
+		});
+	},
+
+	/** Busca por id no tenant (sem filtrar tipo) — útil para validar rota contas-a-pagar vs contas-a-receber. */
+	findByIdInTenant(tenantId: number, id: number) {
+		return prisma.lancamentoFinanceiro.findFirst({
+			where: { id, tenantId },
+			include: includeRelacoes
+		});
+	},
+
+	async deleteByIdInTenantAndType(tenantId: number, id: number, type: FinanceType) {
+		const row = await prisma.lancamentoFinanceiro.findFirst({
+			where: { id, tenantId, type }
+		});
+		if (!row) {
+			return false;
+		}
+		await prisma.lancamentoFinanceiro.delete({ where: { id } });
+		return true;
+	},
+
+	/** Efetiva pagamento/recebimento: data e opcionalmente conta de terceiro e observação. */
+	async updatePagamentoEfetivado(
+		tenantId: number,
+		id: number,
+		type: FinanceType,
+		data: {
+			dataPagamento: Date;
+			contaBancariaTerceiroId?: number | null;
+			observacao?: string;
+		}
+	) {
+		const row = await prisma.lancamentoFinanceiro.findFirst({
+			where: { id, tenantId, type }
+		});
+		if (!row) {
+			return null;
+		}
+		return prisma.lancamentoFinanceiro.update({
+			where: { id },
+			data: {
+				dataPagamento: data.dataPagamento,
+				...(data.contaBancariaTerceiroId !== undefined
+					? { contaBancariaTerceiroId: data.contaBancariaTerceiroId }
+					: {}),
+				...(data.observacao !== undefined ? { observacao: data.observacao } : {})
 			},
 			include: includeRelacoes
 		});

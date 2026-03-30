@@ -37,5 +37,14 @@ export const fornecedorRepository = {
 				payload: data.payload
 			}
 		});
+	},
+
+	async deleteByIdInTenant(tenantId: number, id: number) {
+		const existing = await prisma.fornecedor.findFirst({ where: { id, tenantId } });
+		if (!existing) {
+			return false;
+		}
+		await prisma.fornecedor.delete({ where: { id } });
+		return true;
 	}
 };

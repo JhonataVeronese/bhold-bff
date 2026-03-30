@@ -1,7 +1,8 @@
 import { FinanceType, Prisma, RecurrenceType } from '@prisma/client';
 import { HttpError } from '../../http/HttpError';
 import { clienteRepository } from '../../repositories/cliente.repository';
-import { contaBancariaRepository } from '../../repositories/contaBancaria.repository';
+import { contaBancariaEmpresaRepository } from '../../repositories/contaBancariaEmpresa.repository';
+import { contaBancariaTerceiroRepository } from '../../repositories/contaBancariaTerceiro.repository';
 import { fornecedorRepository } from '../../repositories/fornecedor.repository';
 import { lancamentoFinanceiroRepository } from '../../repositories/lancamentoFinanceiro.repository';
 import { parseYmdToUtcDate } from '../../utils/dates';
@@ -27,14 +28,18 @@ export async function createLancamentoUseCase(
 		dataPagamento = parseYmdToUtcDate(body.dataPagamento);
 	}
 
-	const contaBancariaId = parsePositiveInt(body.contaBancariaId);
-	if (contaBancariaId === null) {
-		throw new HttpError(400, 'contaBancariaId é obrigatório e deve ser numérico');
+	const contaEmpresaRaw = body.contaBancariaEmpresaId ?? body.contaBancariaId;
+	const contaBancariaEmpresaId = parsePositiveInt(contaEmpresaRaw);
+	if (contaBancariaEmpresaId === null) {
+		throw new HttpError(
+			400,
+			'contaBancariaEmpresaId (ou contaBancariaId legado) é obrigatório: id da conta bancária da própria empresa'
+		);
 	}
 
-	const conta = await contaBancariaRepository.findByIdInTenant(tenantId, contaBancariaId);
+	const conta = await contaBancariaEmpresaRepository.findByIdInTenant(tenantId, contaBancariaEmpresaId);
 	if (!conta) {
-		throw new HttpError(400, 'contaBancariaId não encontrado neste tenant');
+		throw new HttpError(400, 'Conta da empresa não encontrada neste tenant (use uma conta cadastrada em GET /contas-bancarias/empresa)');
 	}
 
 	const counterpartyId = parsePositiveInt(body.counterpartyId);
@@ -57,6 +62,35 @@ export async function createLancamentoUseCase(
 			throw new HttpError(400, 'Cliente (counterpartyId) não encontrado neste tenant');
 		}
 		clienteId = c.id;
+	}
+
+	let contaBancariaTerceiroId: number | null = null;
+	const terceiroRaw = body.contaBancariaTerceiroId;
+	if (terceiroRaw !== undefined && terceiroRaw !== null && String(terceiroRaw).trim() !== '') {
+		const tid = parsePositiveInt(terceiroRaw);
+		if (tid === null) {
+			throw new HttpError(400, 'contaBancariaTerceiroId deve ser numérico quando informado');
+		}
+		const cbt = await contaBancariaTerceiroRepository.findByIdInTenant(tenantId, tid);
+		if (!cbt) {
+			throw new HttpError(400, 'contaBancariaTerceiroId não encontrada neste tenant');
+		}
+		if (type === 'PAYABLE') {
+			if (cbt.fornecedorId == null || cbt.fornecedorId !== fornecedorId) {
+				throw new HttpError(
+					400,
+					'contaBancariaTerceiroId deve ser uma conta bancária cadastrada para o mesmo fornecedor do lançamento'
+				);
+			}
+		} else {
+			if (cbt.clienteId == null || cbt.clienteId !== clienteId) {
+				throw new HttpError(
+					400,
+					'contaBancariaTerceiroId deve ser uma conta bancária cadastrada para o mesmo cliente do lançamento'
+				);
+			}
+		}
+		contaBancariaTerceiroId = tid;
 	}
 
 	const descricao = str(body.descricao);
@@ -85,7 +119,8 @@ export async function createLancamentoUseCase(
 		valor: new Prisma.Decimal(String(valorNum)),
 		dataVencimento,
 		dataPagamento,
-		contaBancariaId,
+		contaBancariaEmpresaId,
+		contaBancariaTerceiroId,
 		fornecedorId,
 		clienteId,
 		descricao,

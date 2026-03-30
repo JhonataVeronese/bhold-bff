@@ -44,14 +44,21 @@ export function mapUsuarioCreated(u: UsuarioComTenant) {
 	};
 }
 
+/** Resposta pós-login: dados do usuário + perfil de acesso (JSON e código enum). */
 export function mapUsuarioAuthResponse(u: UsuarioComTenant) {
+	const perfilAcesso = perfilToJson(u.perfil);
 	return {
 		id: String(u.id),
 		tenantId: String(u.tenantId),
 		tenantNome: u.tenant.nome,
 		nome: u.nome,
 		email: u.email,
-		perfil: perfilToJson(u.perfil),
+		/** Perfil de acesso (valores estáveis para UI: super, admin, operador, leitura). */
+		perfilAcesso,
+		/** Alias legado de `perfilAcesso`. */
+		perfil: perfilAcesso,
+		/** Código do enum no banco / JWT (SUPER, ADMIN, OPERADOR, LEITURA). */
+		perfilCodigo: u.perfil,
 		ativo: u.ativo
 	};
 }

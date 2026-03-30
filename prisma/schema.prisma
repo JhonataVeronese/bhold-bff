@@ -46,25 +46,28 @@ model Tenant {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  fornecedores           Fornecedor[]
-  contasBancarias        ContaBancaria[]
-  usuarios               Usuario[]
-  clientes               Cliente[]
-  lancamentosFinanceiros LancamentoFinanceiro[]
+  fornecedores            Fornecedor[]
+  /// Contas bancárias da própria empresa (fluxo de caixa, pagar/receber).
+  contasBancariasEmpresa ContaBancariaEmpresa[]
+  /// Contas de clientes/fornecedores (destino TED/PIX, cadastro de terceiros).
+  contasBancariasTerceiro ContaBancariaTerceiro[]
+  usuarios                Usuario[]
+  clientes                Cliente[]
+  lancamentosFinanceiros  LancamentoFinanceiro[]
 }
 
 model Fornecedor {
-  id                     Int                  @id @default(autoincrement())
+  id                     Int                    @id @default(autoincrement())
   tenantId               Int
-  tenant                 Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant                 Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   cnpj                   String
   razaoSocial            String
   nomeFantasia           String
   municipio              String
-  uf                     String               @db.VarChar(2)
+  uf                     String                 @db.VarChar(2)
   payload                Json?
-  createdAt              DateTime             @default(now())
-  contasBancarias        ContaBancaria[]
+  createdAt              DateTime               @default(now())
+  contasBancariasTerceiro ContaBancariaTerceiro[]
   lancamentosFinanceiros LancamentoFinanceiro[]
 
   @@unique([tenantId, cnpj])
@@ -72,24 +75,28 @@ model Fornecedor {
 }
 
 model Cliente {
-  id                     Int                  @id @default(autoincrement())
+  id                     Int                    @id @default(autoincrement())
   tenantId               Int
-  tenant                 Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  nome                   String
-  documento              String?
-  createdAt              DateTime             @default(now())
-  updatedAt              DateTime             @updatedAt
+  tenant                 Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cnpj                   String
+  razaoSocial            String
+  nomeFantasia           String
+  municipio              String
+  uf                     String                 @db.VarChar(2)
+  payload                Json?
+  createdAt              DateTime               @default(now())
+  contasBancariasTerceiro ContaBancariaTerceiro[]
   lancamentosFinanceiros LancamentoFinanceiro[]
 
+  @@unique([tenantId, cnpj])
   @@index([tenantId])
 }
 
-model ContaBancaria {
-  id                     Int               @id @default(autoincrement())
+/// Conta bancária da própria empresa (tenant). Usada em lançamentos (caixa).
+model ContaBancariaEmpresa {
+  id                     Int                    @id @default(autoincrement())
   tenantId               Int
-  tenant                 Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  fornecedorId           Int
-  fornecedor             Fornecedor        @relation(fields: [fornecedorId], references: [id], onDelete: Cascade)
+  tenant                 Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   bankIspb               String
   bankCode               Int?
   bankFullName           String
@@ -98,37 +105,68 @@ model ContaBancaria {
   conta                  String
   contaDigito            String?
   tipoConta              TipoContaBancaria
-  pixChave               String            @default("")
-  createdAt              DateTime          @default(now())
+  pixChave               String                 @default("")
+  createdAt              DateTime               @default(now())
   lancamentosFinanceiros LancamentoFinanceiro[]
 
   @@index([tenantId])
 }
 
+/// Conta bancária de terceiro (cliente ou fornecedor): dados para pagamento/recebimento, não é o caixa da empresa.
+model ContaBancariaTerceiro {
+  id            Int         @id @default(autoincrement())
+  tenantId      Int
+  tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  fornecedorId  Int?
+  fornecedor    Fornecedor? @relation(fields: [fornecedorId], references: [id], onDelete: Cascade)
+  clienteId     Int?
+  cliente       Cliente?    @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  bankIspb      String
+  bankCode      Int?
+  bankFullName  String
+  agencia       String
+  agenciaDigito String?
+  conta         String
+  contaDigito   String?
+  tipoConta     TipoContaBancaria
+  pixChave      String      @default("")
+  createdAt     DateTime    @default(now())
+  lancamentosFinanceiros LancamentoFinanceiro[]
+
+  @@index([tenantId])
+  @@index([tenantId, fornecedorId])
+  @@index([tenantId, clienteId])
+}
+
 model LancamentoFinanceiro {
-  id                    Int             @id @default(autoincrement())
-  tenantId              Int
-  tenant                Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  type                  FinanceType
-  valor                 Decimal         @db.Decimal(18, 2)
-  dataVencimento        DateTime        @db.Date
-  dataPagamento         DateTime?       @db.Date
-  contaBancariaId       Int
-  contaBancaria         ContaBancaria   @relation(fields: [contaBancariaId], references: [id], onDelete: Restrict)
-  fornecedorId          Int?
-  fornecedor            Fornecedor?     @relation(fields: [fornecedorId], references: [id], onDelete: Restrict)
-  clienteId             Int?
-  cliente               Cliente?        @relation(fields: [clienteId], references: [id], onDelete: Restrict)
-  descricao             String          @default("")
-  recorrenciaAtiva      Boolean         @default(false)
-  recorrenciaTipo       RecurrenceType
-  recorrenciaQuantidade Int             @default(1)
-  observacao            String          @default("")
-  createdAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
+  id                      Int                  @id @default(autoincrement())
+  tenantId                Int
+  tenant                  Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  type                    FinanceType
+  valor                   Decimal              @db.Decimal(18, 2)
+  dataVencimento          DateTime             @db.Date
+  dataPagamento           DateTime?            @db.Date
+  /// Conta da própria empresa onde o caixa se movimenta.
+  contaBancariaEmpresaId  Int
+  contaBancariaEmpresa    ContaBancariaEmpresa @relation(fields: [contaBancariaEmpresaId], references: [id], onDelete: Restrict)
+  /// Opcional: conta bancária do terceiro (destino em pagamentos / referência em recebimentos).
+  contaBancariaTerceiroId Int?
+  contaBancariaTerceiro   ContaBancariaTerceiro? @relation(fields: [contaBancariaTerceiroId], references: [id], onDelete: SetNull)
+  fornecedorId            Int?
+  fornecedor              Fornecedor?          @relation(fields: [fornecedorId], references: [id], onDelete: Restrict)
+  clienteId               Int?
+  cliente                 Cliente?             @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  descricao               String               @default("")
+  recorrenciaAtiva        Boolean              @default(false)
+  recorrenciaTipo         RecurrenceType
+  recorrenciaQuantidade   Int                  @default(1)
+  observacao              String               @default("")
+  createdAt               DateTime             @default(now())
+  updatedAt               DateTime             @updatedAt
 
   @@index([tenantId])
   @@index([tenantId, type])
+  @@index([contaBancariaTerceiroId])
 }
 
 model Usuario {

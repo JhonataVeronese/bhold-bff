@@ -1,10 +1,11 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '../../infra/db/prisma/client';
 
 export const clienteRepository = {
 	listByTenant(tenantId: number) {
 		return prisma.cliente.findMany({
 			where: { tenantId },
-			orderBy: { nome: 'asc' }
+			orderBy: { createdAt: 'desc' }
 		});
 	},
 
@@ -14,13 +15,75 @@ export const clienteRepository = {
 		});
 	},
 
-	create(tenantId: number, data: { nome: string; documento: string | null }) {
+	findByCnpjInTenant(tenantId: number, cnpj: string, excludeId?: number) {
+		return prisma.cliente.findFirst({
+			where: {
+				tenantId,
+				cnpj,
+				...(excludeId !== undefined ? { id: { not: excludeId } } : {})
+			}
+		});
+	},
+
+	create(
+		tenantId: number,
+		data: {
+			cnpj: string;
+			razaoSocial: string;
+			nomeFantasia: string;
+			municipio: string;
+			uf: string;
+			payload: Prisma.InputJsonValue;
+		}
+	) {
 		return prisma.cliente.create({
 			data: {
 				tenantId,
-				nome: data.nome,
-				documento: data.documento
+				cnpj: data.cnpj,
+				razaoSocial: data.razaoSocial,
+				nomeFantasia: data.nomeFantasia,
+				municipio: data.municipio,
+				uf: data.uf,
+				payload: data.payload
 			}
 		});
+	},
+
+	async update(
+		tenantId: number,
+		id: number,
+		data: {
+			cnpj: string;
+			razaoSocial: string;
+			nomeFantasia: string;
+			municipio: string;
+			uf: string;
+			payload: Prisma.InputJsonValue;
+		}
+	) {
+		const existing = await prisma.cliente.findFirst({ where: { id, tenantId } });
+		if (!existing) {
+			return null;
+		}
+		return prisma.cliente.update({
+			where: { id },
+			data: {
+				cnpj: data.cnpj,
+				razaoSocial: data.razaoSocial,
+				nomeFantasia: data.nomeFantasia,
+				municipio: data.municipio,
+				uf: data.uf,
+				payload: data.payload
+			}
+		});
+	},
+
+	async deleteByIdInTenant(tenantId: number, id: number) {
+		const existing = await prisma.cliente.findFirst({ where: { id, tenantId } });
+		if (!existing) {
+			return false;
+		}
+		await prisma.cliente.delete({ where: { id } });
+		return true;
 	}
 };
