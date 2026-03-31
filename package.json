@@ -34,6 +34,7 @@
 		"prisma:migrate": "yarn prisma migrate deploy --schema prisma/schema.prisma",
 		"prisma:migrate:dev": "yarn prisma migrate dev --schema prisma/schema.prisma",
 		"prisma:generate": "yarn prisma generate --schema prisma/schema.prisma",
+		"prisma:seed": "prisma db seed",
 		"docker:db": "docker compose up -d",
 		"docker:db:down": "docker compose down",
 		"docker:db:logs": "docker compose logs -f db"

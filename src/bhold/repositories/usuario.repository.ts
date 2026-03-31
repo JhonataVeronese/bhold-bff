@@ -55,5 +55,14 @@ export const usuarioRepository = {
 			},
 			include: { tenant: true }
 		});
+	},
+
+	async deleteById(id: number) {
+		const existing = await prisma.usuario.findUnique({ where: { id } });
+		if (!existing) {
+			return false;
+		}
+		await prisma.usuario.delete({ where: { id } });
+		return true;
 	}
 };

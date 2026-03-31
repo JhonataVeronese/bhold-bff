@@ -160,6 +160,10 @@ model LancamentoFinanceiro {
   recorrenciaAtiva        Boolean              @default(false)
   recorrenciaTipo         RecurrenceType
   recorrenciaQuantidade   Int                  @default(1)
+  /// Mesmo UUID em todos os lançamentos gerados numa mesma série (recorrência expandida).
+  recorrenciaGrupoId      String?              @db.Uuid
+  /// Parcela 1..N dentro do grupo (null quando lançamento avulso).
+  recorrenciaParcela      Int?
   observacao              String               @default("")
   createdAt               DateTime             @default(now())
   updatedAt               DateTime             @updatedAt
@@ -167,6 +171,7 @@ model LancamentoFinanceiro {
   @@index([tenantId])
   @@index([tenantId, type])
   @@index([contaBancariaTerceiroId])
+  @@index([recorrenciaGrupoId])
 }
 
 model Usuario {

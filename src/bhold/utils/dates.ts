@@ -19,3 +19,20 @@ export function parseYmdToUtcDate(value: unknown): Date {
 export function formatDateToYmd(date: Date): string {
 	return date.toISOString().slice(0, 10);
 }
+
+/** Soma meses em UTC preservando o dia quando possível (ex.: 31/01 + 1 mês → 28 ou 29/02). */
+export function addMonthsUtc(date: Date, months: number): Date {
+	const y = date.getUTCFullYear();
+	const m = date.getUTCMonth();
+	const day = date.getUTCDate();
+	const totalMonths = m + months;
+	const targetYear = y + Math.floor(totalMonths / 12);
+	const targetMonth = ((totalMonths % 12) + 12) % 12;
+	const lastDayOfMonth = new Date(Date.UTC(targetYear, targetMonth + 1, 0, 12, 0, 0, 0)).getUTCDate();
+	const clampedDay = Math.min(day, lastDayOfMonth);
+	return new Date(Date.UTC(targetYear, targetMonth, clampedDay, 12, 0, 0, 0));
+}
+
+export function addYearsUtc(date: Date, years: number): Date {
+	return addMonthsUtc(date, years * 12);
+}

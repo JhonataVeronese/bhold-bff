@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { FinanceType, Prisma, RecurrenceType } from '@prisma/client';
 import { HttpError } from '../../http/HttpError';
 import { clienteRepository } from '../../repositories/cliente.repository';
@@ -5,7 +6,7 @@ import { contaBancariaEmpresaRepository } from '../../repositories/contaBancaria
 import { contaBancariaTerceiroRepository } from '../../repositories/contaBancariaTerceiro.repository';
 import { fornecedorRepository } from '../../repositories/fornecedor.repository';
 import { lancamentoFinanceiroRepository } from '../../repositories/lancamentoFinanceiro.repository';
-import { parseYmdToUtcDate } from '../../utils/dates';
+import { addMonthsUtc, addYearsUtc, parseYmdToUtcDate } from '../../utils/dates';
 import { parsePositiveInt, str } from '../../utils/strings';
 import { mapLancamentoToRow } from './financeiro.mapper';
 import { parseFinanceType, parseRecurrenceKind } from './financeiro-parsers';
@@ -39,7 +40,10 @@ export async function createLancamentoUseCase(
 
 	const conta = await contaBancariaEmpresaRepository.findByIdInTenant(tenantId, contaBancariaEmpresaId);
 	if (!conta) {
-		throw new HttpError(400, 'Conta da empresa não encontrada neste tenant (use uma conta cadastrada em GET /contas-bancarias/empresa)');
+		throw new HttpError(
+			400,
+			'Conta da empresa não encontrada neste tenant (use uma conta cadastrada em GET /contas-bancarias/empresa)'
+		);
 	}
 
 	const counterpartyId = parsePositiveInt(body.counterpartyId);
@@ -112,6 +116,46 @@ export async function createLancamentoUseCase(
 		if (recorrenciaTipo === 'UNICA') {
 			recorrenciaQuantidade = 1;
 		}
+	}
+
+	const expandirSerieRecorrente =
+		recorrenciaAtiva && recorrenciaQuantidade > 1 && (recorrenciaTipo === 'MENSAL' || recorrenciaTipo === 'ANUAL');
+
+	if (expandirSerieRecorrente) {
+		const grupoId = randomUUID();
+		const valorParcela = new Prisma.Decimal(String(valorNum));
+		const datasVencimento: Date[] = [];
+		for (let i = 0; i < recorrenciaQuantidade; i++) {
+			if (recorrenciaTipo === 'MENSAL') {
+				datasVencimento.push(addMonthsUtc(dataVencimento, i));
+			} else {
+				datasVencimento.push(addYearsUtc(dataVencimento, i));
+			}
+		}
+
+		const batch = datasVencimento.map((dataVenc, i) => ({
+			type,
+			valor: valorParcela,
+			dataVencimento: dataVenc,
+			dataPagamento: null as Date | null,
+			contaBancariaEmpresaId,
+			contaBancariaTerceiroId,
+			fornecedorId,
+			clienteId,
+			descricao,
+			recorrenciaAtiva: false,
+			recorrenciaTipo,
+			recorrenciaQuantidade,
+			observacao,
+			recorrenciaGrupoId: grupoId,
+			recorrenciaParcela: i + 1
+		}));
+
+		const created = await lancamentoFinanceiroRepository.createBatch(tenantId, batch);
+		return {
+			data: created.map(mapLancamentoToRow),
+			recorrenciaGrupoId: grupoId
+		};
 	}
 
 	const created = await lancamentoFinanceiroRepository.create(tenantId, {

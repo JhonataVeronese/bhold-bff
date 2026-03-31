@@ -88,6 +88,8 @@ export function mapLancamentoToRow(row: LancamentoComRelacoes) {
 		recorrenciaAtiva: row.recorrenciaAtiva,
 		recorrenciaTipo: recurrenceToJson(row.recorrenciaTipo),
 		recorrenciaQuantidade: row.recorrenciaQuantidade,
+		recorrenciaGrupoId: row.recorrenciaGrupoId,
+		recorrenciaParcela: row.recorrenciaParcela,
 		observacao: row.observacao
 	};
 }

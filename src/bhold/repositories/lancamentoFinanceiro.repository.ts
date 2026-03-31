@@ -105,6 +105,8 @@ export const lancamentoFinanceiroRepository = {
 			recorrenciaTipo: RecurrenceType;
 			recorrenciaQuantidade: number;
 			observacao: string;
+			recorrenciaGrupoId?: string | null;
+			recorrenciaParcela?: number | null;
 		}
 	) {
 		return prisma.lancamentoFinanceiro.create({
@@ -122,10 +124,42 @@ export const lancamentoFinanceiroRepository = {
 				recorrenciaAtiva: data.recorrenciaAtiva,
 				recorrenciaTipo: data.recorrenciaTipo,
 				recorrenciaQuantidade: data.recorrenciaQuantidade,
-				observacao: data.observacao
+				observacao: data.observacao,
+				recorrenciaGrupoId: data.recorrenciaGrupoId ?? null,
+				recorrenciaParcela: data.recorrenciaParcela ?? null
 			},
 			include: includeRelacoes
 		});
+	},
+
+	createBatch(
+		tenantId: number,
+		items: Array<{
+			type: FinanceType;
+			valor: Prisma.Decimal;
+			dataVencimento: Date;
+			dataPagamento: Date | null;
+			contaBancariaEmpresaId: number;
+			contaBancariaTerceiroId: number | null;
+			fornecedorId: number | null;
+			clienteId: number | null;
+			descricao: string;
+			recorrenciaAtiva: boolean;
+			recorrenciaTipo: RecurrenceType;
+			recorrenciaQuantidade: number;
+			observacao: string;
+			recorrenciaGrupoId: string | null;
+			recorrenciaParcela: number | null;
+		}>
+	) {
+		return prisma.$transaction(
+			items.map((data) =>
+				prisma.lancamentoFinanceiro.create({
+					data: { tenantId, ...data },
+					include: includeRelacoes
+				})
+			)
+		);
 	},
 
 	findByIdInTenantAndType(tenantId: number, id: number, type: FinanceType) {
