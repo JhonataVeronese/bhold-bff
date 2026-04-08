@@ -196,12 +196,18 @@ Ids numéricos costumam vir como **string** no JSON de resposta. O módulo finan
 
 #### Clientes (`GET` \| `POST /clientes`)
 
+`POST /clientes` também aceita a flag opcional `replicarCadastro`. Quando enviada como `true`, o backend cria o mesmo cadastro em `fornecedores` usando os mesmos dados, se ainda não existir fornecedor com o mesmo CNPJ no tenant.
+
 **Exemplo `POST /clientes` (body):**
 
 ```json
 {
-  "nome": "Cliente Fulano de Tal",
-  "documento": "123.456.789-00"
+  "cnpj": "12345678000199",
+  "razao_social": "Cliente Fulano de Tal Ltda",
+  "nome_fantasia": "Cliente Fulano",
+  "municipio": "Sao Paulo",
+  "uf": "SP",
+  "replicarCadastro": true
 }
 ```
 
@@ -254,6 +260,7 @@ Escopo: `X-Tenant-Id` + JWT.
 | `nome_fantasia` ou `nomeFantasia` | sim | |
 | `municipio` | sim | |
 | `uf` | sim | 2 letras |
+| `replicarCadastro` | não | Quando `true`, replica o mesmo cadastro em `clientes` se ainda não existir um cliente com o mesmo CNPJ no tenant |
 
 Também é aceito um objeto aninhado `estabelecimento` (como em integrações de CNPJ): `razao_social`, `nome_fantasia`, `municipio`, `uf`, ou `cidade.nome` / `estado.sigla` para preencher município e UF.
 
@@ -546,7 +553,50 @@ Rotas na **raiz** do app (sem prefixo `/financeiro`): `GET /dashboard`, `GET|POS
 
 #### `GET /contas-a-pagar` / `GET /contas-a-receber`
 
-Atalhos para listar apenas `payable` ou `receivable` (mesmo formato de item abaixo).
+Atalhos para listar apenas `payable` ou `receivable`, agora com paginação e filtros.
+
+**Query opcional:**
+
+| Campo | Tipo | Notas |
+|-------|------|-------|
+| `page` | number | Página atual. Default: `1` |
+| `pageSize` | number | Tamanho da página. Default: `20`, máximo `100` |
+| `contaBancariaId` ou `contaBancariaEmpresaId` | number | Filtra pela conta bancária da empresa |
+| `dataVencimentoDe` ou `vencimentoDe` | string | Aceita `YYYY-MM-DD` ou `DD/MM/AAAA` |
+| `dataVencimentoAte` ou `vencimentoAte` | string | Aceita `YYYY-MM-DD` ou `DD/MM/AAAA` |
+
+**Resposta 200:** `{ "data": [ ... ], "pagination": { ... } }`
+
+**Exemplo `GET /contas-a-pagar?page=1&pageSize=10&contaBancariaId=7&dataVencimentoDe=01/04/2026&dataVencimentoAte=30/04/2026` (200):**
+
+```json
+{
+  "data": [
+    {
+      "id": "101",
+      "kind": "payable",
+      "valor": 1500.75,
+      "dataVencimento": "2026-04-10",
+      "dataPagamento": null,
+      "contaBancariaId": "7",
+      "contaBancariaNome": "Itaú Unibanco S.A. · Ag. 1234-5 · 12345-6",
+      "counterpartyId": "3",
+      "counterpartyName": "ABC Peças",
+      "descricao": "NF 1234 - matéria-prima",
+      "observacao": "",
+      "recorrenciaAtiva": false,
+      "recorrenciaTipo": "unica",
+      "recorrenciaQuantidade": 1
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "pageSize": 10,
+    "totalItems": 6,
+    "totalPages": 1
+  }
+}
+```
 
 #### Item de lançamento (lista)
 

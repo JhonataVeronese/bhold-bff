@@ -12,6 +12,35 @@ export type LancamentoComRelacoes = Prisma.LancamentoFinanceiroGetPayload<{
 	include: typeof includeRelacoes;
 }>;
 
+type LancamentoListFilters = {
+	type?: FinanceType;
+	contaBancariaEmpresaId?: number;
+	dataVencimentoDe?: Date;
+	dataVencimentoAte?: Date;
+};
+
+function buildListWhere(tenantId: number, filters: LancamentoListFilters = {}): Prisma.LancamentoFinanceiroWhereInput {
+	const contaBancariaFilter: Prisma.LancamentoFinanceiroWhereInput = {};
+	if (filters.contaBancariaEmpresaId !== undefined) {
+		contaBancariaFilter.contaBancariaEmpresaId = filters.contaBancariaEmpresaId;
+	}
+
+	const dataVencimentoFilter: Prisma.LancamentoFinanceiroWhereInput = {};
+	if (filters.dataVencimentoDe || filters.dataVencimentoAte) {
+		dataVencimentoFilter.dataVencimento = {
+			...(filters.dataVencimentoDe ? { gte: filters.dataVencimentoDe } : {}),
+			...(filters.dataVencimentoAte ? { lte: filters.dataVencimentoAte } : {})
+		};
+	}
+
+	return {
+		tenantId,
+		...(filters.type !== undefined ? { type: filters.type } : {}),
+		...contaBancariaFilter,
+		...dataVencimentoFilter
+	};
+}
+
 export const lancamentoFinanceiroRepository = {
 	/**
 	 * IDs ordenados por COALESCE(dataPagamento, dataVencimento) DESC (extrato).
@@ -32,9 +61,17 @@ export const lancamentoFinanceiroRepository = {
 				WHERE l."tenantId" = ${tenantId}
 					AND l."contaBancariaEmpresaId" = ${contaBancariaEmpresaId}
 					AND (
-						(l."dataPagamento" IS NOT NULL AND l."dataPagamento" >= ${start}::date AND l."dataPagamento" <= ${end}::date)
+						(
+							l."dataPagamento" IS NOT NULL
+							AND l."dataPagamento" >= ${start}::date
+							AND l."dataPagamento" <= ${end}::date
+						)
 						OR
-						(l."dataPagamento" IS NULL AND l."dataVencimento" >= ${start}::date AND l."dataVencimento" <= ${end}::date)
+						(
+							l."dataPagamento" IS NULL
+							AND l."dataVencimento" >= ${start}::date
+							AND l."dataVencimento" <= ${end}::date
+						)
 					)
 				ORDER BY COALESCE(l."dataPagamento", l."dataVencimento") DESC
 				LIMIT ${take} OFFSET ${skip}
@@ -43,12 +80,7 @@ export const lancamentoFinanceiroRepository = {
 		return rows.map((r) => r.id);
 	},
 
-	async countExtratoMes(
-		tenantId: number,
-		contaBancariaEmpresaId: number,
-		start: Date,
-		end: Date
-	): Promise<number> {
+	async countExtratoMes(tenantId: number, contaBancariaEmpresaId: number, start: Date, end: Date): Promise<number> {
 		const r = await prisma.$queryRaw<[{ c: bigint }]>(
 			Prisma.sql`
 				SELECT COUNT(*)::bigint AS c
@@ -56,9 +88,17 @@ export const lancamentoFinanceiroRepository = {
 				WHERE l."tenantId" = ${tenantId}
 					AND l."contaBancariaEmpresaId" = ${contaBancariaEmpresaId}
 					AND (
-						(l."dataPagamento" IS NOT NULL AND l."dataPagamento" >= ${start}::date AND l."dataPagamento" <= ${end}::date)
+						(
+							l."dataPagamento" IS NOT NULL
+							AND l."dataPagamento" >= ${start}::date
+							AND l."dataPagamento" <= ${end}::date
+						)
 						OR
-						(l."dataPagamento" IS NULL AND l."dataVencimento" >= ${start}::date AND l."dataVencimento" <= ${end}::date)
+						(
+							l."dataPagamento" IS NULL
+							AND l."dataVencimento" >= ${start}::date
+							AND l."dataVencimento" <= ${end}::date
+						)
 					)
 			`
 		);
@@ -80,12 +120,25 @@ export const lancamentoFinanceiroRepository = {
 
 	listByTenant(tenantId: number, type?: FinanceType) {
 		return prisma.lancamentoFinanceiro.findMany({
-			where: {
-				tenantId,
-				...(type !== undefined ? { type } : {})
-			},
+			where: buildListWhere(tenantId, { type }),
 			include: includeRelacoes,
 			orderBy: [{ dataVencimento: 'desc' }, { createdAt: 'desc' }]
+		});
+	},
+
+	listByTenantPaginated(tenantId: number, filters: LancamentoListFilters, skip: number, take: number) {
+		return prisma.lancamentoFinanceiro.findMany({
+			where: buildListWhere(tenantId, filters),
+			include: includeRelacoes,
+			orderBy: [{ dataVencimento: 'desc' }, { createdAt: 'desc' }],
+			skip,
+			take
+		});
+	},
+
+	countByTenantWithFilters(tenantId: number, filters: LancamentoListFilters) {
+		return prisma.lancamentoFinanceiro.count({
+			where: buildListWhere(tenantId, filters)
 		});
 	},
 

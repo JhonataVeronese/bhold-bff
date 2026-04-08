@@ -1,6 +1,8 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '../../infra/db/prisma/client';
 
+type DbClient = Prisma.TransactionClient | typeof prisma;
+
 export const clienteRepository = {
 	listByTenant(tenantId: number) {
 		return prisma.cliente.findMany({
@@ -15,8 +17,8 @@ export const clienteRepository = {
 		});
 	},
 
-	findByCnpjInTenant(tenantId: number, cnpj: string, excludeId?: number) {
-		return prisma.cliente.findFirst({
+	findByCnpjInTenant(tenantId: number, cnpj: string, excludeId?: number, db: DbClient = prisma) {
+		return db.cliente.findFirst({
 			where: {
 				tenantId,
 				cnpj,
@@ -34,9 +36,10 @@ export const clienteRepository = {
 			municipio: string;
 			uf: string;
 			payload: Prisma.InputJsonValue;
-		}
+		},
+		db: DbClient = prisma
 	) {
-		return prisma.cliente.create({
+		return db.cliente.create({
 			data: {
 				tenantId,
 				cnpj: data.cnpj,

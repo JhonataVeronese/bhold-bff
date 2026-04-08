@@ -28,7 +28,7 @@ export const financeiroController = {
 
 	listContasAPagar: asyncHandler(async (req, res) => {
 		const tenantId = getTenantId(req);
-		const result = await listLancamentosByTypeUseCase(tenantId, 'PAYABLE');
+		const result = await listLancamentosByTypeUseCase(tenantId, 'PAYABLE', req.query as Record<string, unknown>);
 		res.json(result);
 	}),
 
@@ -46,7 +46,7 @@ export const financeiroController = {
 
 	listContasAReceber: asyncHandler(async (req, res) => {
 		const tenantId = getTenantId(req);
-		const result = await listLancamentosByTypeUseCase(tenantId, 'RECEIVABLE');
+		const result = await listLancamentosByTypeUseCase(tenantId, 'RECEIVABLE', req.query as Record<string, unknown>);
 		res.json(result);
 	}),
 

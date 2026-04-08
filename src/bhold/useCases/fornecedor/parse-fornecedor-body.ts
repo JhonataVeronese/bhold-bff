@@ -70,3 +70,33 @@ export function validateFornecedorCreate(extracted: ReturnType<typeof extractFor
 		throw new HttpError(400, 'uf é obrigatório (sigla com 2 letras)');
 	}
 }
+
+export function parseReplicarCadastroFlag(body: Jsonish): boolean {
+	const raw =
+		body.replicarCadastro ??
+		body.replicarComoFornecedor ??
+		body.replicarComoCliente ??
+		body.cadastrarTambemComoFornecedor ??
+		body.cadastrarTambemComoCliente;
+
+	if (raw === undefined || raw === null || raw === '') {
+		return false;
+	}
+
+	if (typeof raw === 'boolean') {
+		return raw;
+	}
+
+	if (typeof raw === 'number') {
+		if (raw === 1) return true;
+		if (raw === 0) return false;
+	}
+
+	if (typeof raw === 'string') {
+		const value = raw.trim().toLowerCase();
+		if (['true', '1', 'sim', 's', 'yes', 'y'].includes(value)) return true;
+		if (['false', '0', 'nao', 'não', 'n', 'no'].includes(value)) return false;
+	}
+
+	throw new HttpError(400, 'replicarCadastro deve ser um booleano');
+}
