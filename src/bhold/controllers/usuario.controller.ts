@@ -6,14 +6,22 @@ import { deleteUsuarioUseCase } from '../useCases/usuario/delete-usuario.use-cas
 import { listUsuariosUseCase } from '../useCases/usuario/list-usuarios.use-case';
 
 export const usuarioController = {
-	list: asyncHandler(async (_req, res) => {
-		const result = await listUsuariosUseCase();
+	list: asyncHandler(async (req, res) => {
+		const auth = req.auth;
+		if (!auth) {
+			throw new HttpError(401, 'Não autenticado');
+		}
+		const result = await listUsuariosUseCase(auth);
 		res.json(result);
 	}),
 
 	create: asyncHandler(async (req, res) => {
+		const auth = req.auth;
+		if (!auth) {
+			throw new HttpError(401, 'Não autenticado');
+		}
 		const tenantId = resolveTenantIdForUsuarioCreate(req, req.body as Record<string, unknown>);
-		const result = await createUsuarioUseCase(tenantId, req.body as Record<string, unknown>);
+		const result = await createUsuarioUseCase(auth, tenantId, req.body as Record<string, unknown>);
 		res.status(201).json(result);
 	}),
 
@@ -22,7 +30,7 @@ export const usuarioController = {
 		if (!auth) {
 			throw new HttpError(401, 'Não autenticado');
 		}
-		await deleteUsuarioUseCase(auth.sub, req.params.id);
+		await deleteUsuarioUseCase(auth, req.params.id);
 		res.status(204).send();
 	})
 };

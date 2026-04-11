@@ -5,6 +5,61 @@ import { usuarioRepository } from '../../repositories/usuario.repository';
 import { parsePositiveInt, str } from '../../utils/strings';
 import { mapUsuarioAuthResponse } from '../usuario/usuario.mapper';
 
+async function resolveLoginUser(email: string, senha: string, tenantIdHintRaw: unknown) {
+	const tenantIdHint = parsePositiveInt(tenantIdHintRaw);
+
+	const users = await usuarioRepository.listByEmail(email);
+	if (users.length === 0) {
+		throw new HttpError(401, 'Credenciais inválidas');
+	}
+
+	const matchedActiveUsers: typeof users = [];
+	let hasInactiveMatch = false;
+
+	for (const user of users) {
+		const ok = await bcrypt.compare(senha, user.senhaHash);
+		if (!ok) continue;
+		if (!user.ativo) {
+			hasInactiveMatch = true;
+			continue;
+		}
+		matchedActiveUsers.push(user);
+	}
+
+	if (matchedActiveUsers.length === 0) {
+		if (hasInactiveMatch) {
+			throw new HttpError(403, 'Usuário inativo');
+		}
+		throw new HttpError(401, 'Credenciais inválidas');
+	}
+
+	const tenantUsers = matchedActiveUsers.filter((user) => user.perfil !== 'SUPER');
+	if (tenantUsers.length === 1) {
+		return tenantUsers[0];
+	}
+
+	if (tenantUsers.length > 1) {
+		if (tenantIdHint !== null && Number.isInteger(tenantIdHint) && tenantIdHint > 0) {
+			const hintedUser = tenantUsers.find((user) => user.tenantId === tenantIdHint);
+			if (hintedUser) {
+				return hintedUser;
+			}
+		}
+
+		throw new HttpError(
+			409,
+			'Mais de um tenant encontrado para este login. Informe o tenantId apenas se precisar desempatar usuários com o mesmo email e senha.'
+		);
+	}
+
+	const superUser = matchedActiveUsers.find((user) => user.perfil === 'SUPER');
+	if (superUser) {
+		return superUser;
+	}
+
+	throw new HttpError(401, 'Credenciais inválidas');
+}
+
 export async function loginUseCase(body: Record<string, unknown>) {
 	const email = str(body.email).toLowerCase();
 	const senha = str(body.senha);
@@ -12,34 +67,7 @@ export async function loginUseCase(body: Record<string, unknown>) {
 		throw new HttpError(400, 'email e senha são obrigatórios');
 	}
 
-	const tenantIdFromBody = parsePositiveInt(body.tenantId);
-
-	const user =
-		tenantIdFromBody !== null
-			? await usuarioRepository.findByTenantAndEmail(tenantIdFromBody, email)
-			: await usuarioRepository.findSuperUserByEmail(email);
-
-	if (!user && tenantIdFromBody === null) {
-		const existeOutroPerfil = await usuarioRepository.findFirstByEmail(email);
-		if (existeOutroPerfil && existeOutroPerfil.perfil !== 'SUPER') {
-			throw new HttpError(
-				400,
-				'Informe tenantId no corpo do login (número do tenant onde o usuário foi cadastrado). Usuários super não precisam deste campo.'
-			);
-		}
-	}
-
-	if (!user) {
-		throw new HttpError(401, 'Credenciais inválidas');
-	}
-	if (!user.ativo) {
-		throw new HttpError(403, 'Usuário inativo');
-	}
-
-	const ok = await bcrypt.compare(senha, user.senhaHash);
-	if (!ok) {
-		throw new HttpError(401, 'Credenciais inválidas');
-	}
+	const user = await resolveLoginUser(email, senha, body.tenantId);
 
 	const accessToken = signAccessToken({
 		sub: user.id,

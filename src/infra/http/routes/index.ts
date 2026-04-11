@@ -9,6 +9,7 @@ import { financeiroRouter } from '../../../bhold/routes/financeiro.routes';
 import { tenantRouter } from '../../../bhold/routes/tenant.routes';
 import { usuarioRouter } from '../../../bhold/routes/usuario.routes';
 import { authenticateJwtMiddleware } from '../middlewares/authenticateJwt';
+import { requireAdminOrSuperMiddleware } from '../middlewares/requireAdminOrSuper';
 import { requireSuperMiddleware } from '../middlewares/requireSuper';
 import { requireTenantMiddleware } from '../middlewares/requireTenant';
 
@@ -35,7 +36,7 @@ router.use(authenticateJwtMiddleware);
 
 /** Cadastro global: apenas perfil SUPER (JWT). */
 router.use('/tenants', requireSuperMiddleware, tenantRouter);
-router.use('/usuarios', requireSuperMiddleware, usuarioRouter);
+router.use('/usuarios', requireAdminOrSuperMiddleware, usuarioRouter);
 
 router.use(requireTenantMiddleware);
 

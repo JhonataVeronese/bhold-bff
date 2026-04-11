@@ -11,6 +11,14 @@ export const usuarioRepository = {
 		});
 	},
 
+	listByEmail(email: string) {
+		return prisma.usuario.findMany({
+			where: { email: email.toLowerCase() },
+			include: { tenant: true },
+			orderBy: [{ ativo: 'desc' }, { createdAt: 'asc' }]
+		});
+	},
+
 	findSuperUserByEmail(email: string) {
 		return prisma.usuario.findFirst({
 			where: {
@@ -33,6 +41,27 @@ export const usuarioRepository = {
 		return prisma.usuario.findMany({
 			include: { tenant: true },
 			orderBy: [{ tenantId: 'asc' }, { createdAt: 'desc' }]
+		});
+	},
+
+	listByTenant(tenantId: number) {
+		return prisma.usuario.findMany({
+			where: { tenantId },
+			include: { tenant: true },
+			orderBy: [{ createdAt: 'desc' }]
+		});
+	},
+
+	findById(id: number) {
+		return prisma.usuario.findUnique({
+			where: { id },
+			include: { tenant: true }
+		});
+	},
+
+	countByTenant(tenantId: number) {
+		return prisma.usuario.count({
+			where: { tenantId }
 		});
 	},
 
