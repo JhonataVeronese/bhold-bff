@@ -61,6 +61,45 @@ export const dashboardFinanceiroRepository = {
 		return toNum(r._sum.valor);
 	},
 
+	openByContaUntil(tenantId: number, type: FinanceType, end: Date) {
+		return prisma.lancamentoFinanceiro.groupBy({
+			by: ['contaBancariaEmpresaId'],
+			where: {
+				tenantId,
+				type,
+				dataPagamento: null,
+				dataVencimento: { lte: end },
+				contaBancariaEmpresaId: { not: null }
+			},
+			_sum: { valor: true }
+		});
+	},
+
+	paidByContaUntil(tenantId: number, type: FinanceType, end: Date) {
+		return prisma.lancamentoFinanceiro.groupBy({
+			by: ['contaBancariaEmpresaId'],
+			where: {
+				tenantId,
+				type,
+				dataPagamento: { lte: end },
+				contaBancariaEmpresaId: { not: null }
+			},
+			_sum: { valor: true }
+		});
+	},
+
+	transferInByContaUntil(tenantId: number, end: Date) {
+		return prisma.lancamentoFinanceiro.groupBy({
+			by: ['contaBancariaDestinoId'],
+			where: {
+				tenantId,
+				dataPagamento: { lte: end },
+				contaBancariaDestinoId: { not: null }
+			},
+			_sum: { valor: true }
+		});
+	},
+
 	async sumDueInRange(tenantId: number, type: FinanceType, start: Date, end: Date) {
 		const r = await prisma.lancamentoFinanceiro.aggregate({
 			where: {

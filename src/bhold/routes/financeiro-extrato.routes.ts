@@ -4,6 +4,7 @@ import { financeiroExtratoController } from '../controllers/financeiro-extrato.c
 const financeiroExtratoRouter = Router();
 
 financeiroExtratoRouter.get('/extrato', financeiroExtratoController.extrato);
+financeiroExtratoRouter.get('/resumo-bancos', financeiroExtratoController.resumoBancos);
 financeiroExtratoRouter.get('/resumo-periodo', financeiroExtratoController.resumoPeriodo);
 
 export { financeiroExtratoRouter };

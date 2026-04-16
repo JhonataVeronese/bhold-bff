@@ -55,5 +55,16 @@ export const movimentoContaEmpresaRepository = {
 			_sum: { valor: true }
 		});
 		return r._sum.valor ? r._sum.valor.toNumber() : 0;
+	},
+
+	sumByContaUntil(tenantId: number, end: Date) {
+		return prisma.movimentoContaEmpresa.groupBy({
+			by: ['contaBancariaEmpresaId'],
+			where: {
+				tenantId,
+				dataMovimento: { lte: end }
+			},
+			_sum: { valor: true }
+		});
 	}
 };
