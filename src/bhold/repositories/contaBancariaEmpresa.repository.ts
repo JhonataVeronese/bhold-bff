@@ -1,11 +1,19 @@
-import { TipoContaBancaria } from '@prisma/client';
+import { Prisma, TipoContaBancaria } from '@prisma/client';
 import { prisma } from '../../infra/db/prisma/client';
+
+type DbClient = Prisma.TransactionClient | typeof prisma;
 
 export const contaBancariaEmpresaRepository = {
 	listByTenant(tenantId: number) {
 		return prisma.contaBancariaEmpresa.findMany({
 			where: { tenantId },
 			orderBy: { createdAt: 'desc' }
+		});
+	},
+
+	findFirstByNomeInTenant(tenantId: number, nome: string, db: DbClient = prisma) {
+		return db.contaBancariaEmpresa.findFirst({
+			where: { tenantId, nome }
 		});
 	},
 
@@ -27,11 +35,16 @@ export const contaBancariaEmpresaRepository = {
 			contaDigito: string | null;
 			tipoConta: TipoContaBancaria;
 			pixChave: string;
-		}
+			nome: string;
+			dataSaldoInicial: Date | null;
+			saldoInicial: Prisma.Decimal | null;
+		},
+		db: DbClient = prisma
 	) {
-		return prisma.contaBancariaEmpresa.create({
+		return db.contaBancariaEmpresa.create({
 			data: {
 				tenantId,
+				nome: data.nome,
 				bankIspb: data.bankIspb,
 				bankCode: data.bankCode,
 				bankFullName: data.bankFullName,
@@ -40,14 +53,19 @@ export const contaBancariaEmpresaRepository = {
 				conta: data.conta,
 				contaDigito: data.contaDigito,
 				tipoConta: data.tipoConta,
-				pixChave: data.pixChave
+				pixChave: data.pixChave,
+				dataSaldoInicial: data.dataSaldoInicial,
+				saldoInicial: data.saldoInicial
 			}
 		});
 	},
 
 	countLancamentos(tenantId: number, contaBancariaEmpresaId: number) {
 		return prisma.lancamentoFinanceiro.count({
-			where: { tenantId, contaBancariaEmpresaId }
+			where: {
+				tenantId,
+				OR: [{ contaBancariaEmpresaId }, { contaBancariaDestinoId: contaBancariaEmpresaId }]
+			}
 		});
 	},
 
@@ -57,9 +75,18 @@ export const contaBancariaEmpresaRepository = {
 			return 'not_found' as const;
 		}
 		const n = await prisma.lancamentoFinanceiro.count({
+			where: {
+				tenantId,
+				OR: [{ contaBancariaEmpresaId: id }, { contaBancariaDestinoId: id }]
+			}
+		});
+		const movimentos = await prisma.movimentoContaEmpresa.count({
 			where: { tenantId, contaBancariaEmpresaId: id }
 		});
-		if (n > 0) {
+		const formas = await prisma.formaPagamento.count({
+			where: { tenantId, contaBancariaEmpresaId: id }
+		});
+		if (n > 0 || movimentos > 0 || formas > 0) {
 			return 'has_lancamentos' as const;
 		}
 		await prisma.contaBancariaEmpresa.delete({ where: { id } });

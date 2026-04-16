@@ -6,6 +6,7 @@ import { efetivarPagamentoLancamentoUseCase } from '../useCases/financeiro/efeti
 import { getDashboardFinanceiroUseCase } from '../useCases/financeiro/get-dashboard-financeiro.use-case';
 import { getLancamentoFinanceiroByIdUseCase } from '../useCases/financeiro/get-lancamento-financeiro-by-id.use-case';
 import { listLancamentosByTypeUseCase, listLancamentosUseCase } from '../useCases/financeiro/list-lancamentos.use-case';
+import { updateLancamentoFinanceiroUseCase } from '../useCases/financeiro/update-lancamento-financeiro.use-case';
 
 export const financeiroController = {
 	dashboard: asyncHandler(async (req, res) => {
@@ -44,6 +45,17 @@ export const financeiroController = {
 		res.json(result);
 	}),
 
+	updateContaAPagar: asyncHandler(async (req, res) => {
+		const tenantId = getTenantId(req);
+		const result = await updateLancamentoFinanceiroUseCase(
+			tenantId,
+			req.params.id,
+			'PAYABLE',
+			req.body as Record<string, unknown>
+		);
+		res.json(result);
+	}),
+
 	listContasAReceber: asyncHandler(async (req, res) => {
 		const tenantId = getTenantId(req);
 		const result = await listLancamentosByTypeUseCase(tenantId, 'RECEIVABLE', req.query as Record<string, unknown>);
@@ -59,6 +71,17 @@ export const financeiroController = {
 	getContaAReceberById: asyncHandler(async (req, res) => {
 		const tenantId = getTenantId(req);
 		const result = await getLancamentoFinanceiroByIdUseCase(tenantId, req.params.id, 'RECEIVABLE');
+		res.json(result);
+	}),
+
+	updateContaAReceber: asyncHandler(async (req, res) => {
+		const tenantId = getTenantId(req);
+		const result = await updateLancamentoFinanceiroUseCase(
+			tenantId,
+			req.params.id,
+			'RECEIVABLE',
+			req.body as Record<string, unknown>
+		);
 		res.json(result);
 	}),
 

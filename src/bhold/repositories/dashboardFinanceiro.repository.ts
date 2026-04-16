@@ -17,6 +17,11 @@ export type DailyCashRow = {
 	pagamentos: Prisma.Decimal | null;
 };
 
+export type DailyTypeTotalRow = {
+	dia: Date;
+	total: Prisma.Decimal | null;
+};
+
 export type UfValorRow = {
 	uf: string;
 	total: Prisma.Decimal | null;
@@ -38,6 +43,30 @@ export const dashboardFinanceiroRepository = {
 				tenantId,
 				type,
 				dataPagamento: { gte: start, lte: end }
+			},
+			_sum: { valor: true }
+		});
+		return toNum(r._sum.valor);
+	},
+
+	async sumPaidUntil(tenantId: number, type: FinanceType, end: Date) {
+		const r = await prisma.lancamentoFinanceiro.aggregate({
+			where: {
+				tenantId,
+				type,
+				dataPagamento: { lte: end }
+			},
+			_sum: { valor: true }
+		});
+		return toNum(r._sum.valor);
+	},
+
+	async sumDueInRange(tenantId: number, type: FinanceType, start: Date, end: Date) {
+		const r = await prisma.lancamentoFinanceiro.aggregate({
+			where: {
+				tenantId,
+				type,
+				dataVencimento: { gte: start, lte: end }
 			},
 			_sum: { valor: true }
 		});
@@ -100,6 +129,27 @@ export const dashboardFinanceiroRepository = {
 				COALESCE(SUM(CASE WHEN l.type = 'PAYABLE' THEN l.valor ELSE 0 END), 0) AS pagamentos
 			FROM "LancamentoFinanceiro" l
 			WHERE l."tenantId" = ${tenantId}
+				AND l."dataPagamento" IS NOT NULL
+				AND l."dataPagamento" >= ${start}
+				AND l."dataPagamento" <= ${end}
+			GROUP BY 1
+			ORDER BY 1
+		`;
+	},
+
+	async dailyPaidByTypeInRange(
+		tenantId: number,
+		type: FinanceType,
+		start: Date,
+		end: Date
+	): Promise<DailyTypeTotalRow[]> {
+		return prisma.$queryRaw<DailyTypeTotalRow[]>`
+			SELECT
+				l."dataPagamento"::date AS dia,
+				COALESCE(SUM(l.valor), 0) AS total
+			FROM "LancamentoFinanceiro" l
+			WHERE l."tenantId" = ${tenantId}
+				AND l.type = CAST(${type} AS "FinanceType")
 				AND l."dataPagamento" IS NOT NULL
 				AND l."dataPagamento" >= ${start}
 				AND l."dataPagamento" <= ${end}

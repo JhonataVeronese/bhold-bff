@@ -39,11 +39,15 @@ export function mapContaBancariaEmpresaRow(c: ContaBancariaEmpresa) {
 	return {
 		id: String(c.id),
 		escopo: 'empresa' as const,
+		nome: c.nome,
 		bankFullName: c.bankFullName,
 		bankCode: c.bankCode,
 		agencia: formatAgencia(c.agencia, c.agenciaDigito),
 		conta: formatConta(c.conta, c.contaDigito),
 		tipoConta: tipoContaToJson(c.tipoConta),
+		pixChave: c.pixChave,
+		dataSaldoInicial: c.dataSaldoInicial ? c.dataSaldoInicial.toISOString().slice(0, 10) : null,
+		saldoInicial: c.saldoInicial ? c.saldoInicial.toNumber() : null,
 		cadastradoEm: c.createdAt.toISOString()
 	};
 }
@@ -59,8 +63,8 @@ export function mapContaBancariaTerceiroRow(r: ContaTerceiroComRelacoes) {
 		tipoTerceiro === 'fornecedor' && r.fornecedor
 			? r.fornecedor.nomeFantasia || r.fornecedor.razaoSocial
 			: r.cliente
-				? r.cliente.nomeFantasia || r.cliente.razaoSocial
-				: '';
+			? r.cliente.nomeFantasia || r.cliente.razaoSocial
+			: '';
 
 	return {
 		id: String(r.id),

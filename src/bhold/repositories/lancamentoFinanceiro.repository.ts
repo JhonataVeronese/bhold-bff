@@ -3,7 +3,9 @@ import { prisma } from '../../infra/db/prisma/client';
 
 const includeRelacoes = {
 	contaBancariaEmpresa: true,
+	contaBancariaDestino: true,
 	contaBancariaTerceiro: true,
+	formaPagamento: true,
 	fornecedor: true,
 	cliente: true
 } satisfies Prisma.LancamentoFinanceiroInclude;
@@ -142,17 +144,51 @@ export const lancamentoFinanceiroRepository = {
 		});
 	},
 
+	listByContaEmpresaAndPeriodo(tenantId: number, contaBancariaEmpresaId: number, start: Date, end: Date) {
+		return prisma.lancamentoFinanceiro.findMany({
+			where: {
+				tenantId,
+				contaBancariaEmpresaId,
+				OR: [
+					{ dataPagamento: { gte: start, lte: end } },
+					{ dataPagamento: null, dataVencimento: { gte: start, lte: end } }
+				]
+			},
+			include: includeRelacoes,
+			orderBy: [{ dataPagamento: 'desc' }, { dataVencimento: 'desc' }, { createdAt: 'desc' }]
+		});
+	},
+
+	listOpenOverdueByTypeUntil(tenantId: number, type: FinanceType, end: Date) {
+		return prisma.lancamentoFinanceiro.findMany({
+			where: {
+				tenantId,
+				type,
+				dataPagamento: null,
+				dataVencimento: { lte: end }
+			},
+			include: includeRelacoes,
+			orderBy: [{ dataVencimento: 'asc' }, { createdAt: 'asc' }]
+		});
+	},
+
 	create(
 		tenantId: number,
 		data: {
 			type: FinanceType;
 			valor: Prisma.Decimal;
+			dataCompetencia: Date;
 			dataVencimento: Date;
 			dataPagamento: Date | null;
 			contaBancariaEmpresaId: number;
+			contaBancariaDestinoId: number | null;
 			contaBancariaTerceiroId: number | null;
+			formaPagamentoId: number | null;
 			fornecedorId: number | null;
 			clienteId: number | null;
+			numeroDocumento: string;
+			contaGerencial: string;
+			pixChave: string;
 			descricao: string;
 			recorrenciaAtiva: boolean;
 			recorrenciaTipo: RecurrenceType;
@@ -167,12 +203,18 @@ export const lancamentoFinanceiroRepository = {
 				tenantId,
 				type: data.type,
 				valor: data.valor,
+				dataCompetencia: data.dataCompetencia,
 				dataVencimento: data.dataVencimento,
 				dataPagamento: data.dataPagamento,
 				contaBancariaEmpresaId: data.contaBancariaEmpresaId,
+				contaBancariaDestinoId: data.contaBancariaDestinoId,
 				contaBancariaTerceiroId: data.contaBancariaTerceiroId,
+				formaPagamentoId: data.formaPagamentoId,
 				fornecedorId: data.fornecedorId,
 				clienteId: data.clienteId,
+				numeroDocumento: data.numeroDocumento,
+				contaGerencial: data.contaGerencial,
+				pixChave: data.pixChave,
 				descricao: data.descricao,
 				recorrenciaAtiva: data.recorrenciaAtiva,
 				recorrenciaTipo: data.recorrenciaTipo,
@@ -190,12 +232,18 @@ export const lancamentoFinanceiroRepository = {
 		items: Array<{
 			type: FinanceType;
 			valor: Prisma.Decimal;
+			dataCompetencia: Date;
 			dataVencimento: Date;
 			dataPagamento: Date | null;
 			contaBancariaEmpresaId: number;
+			contaBancariaDestinoId: number | null;
 			contaBancariaTerceiroId: number | null;
+			formaPagamentoId: number | null;
 			fornecedorId: number | null;
 			clienteId: number | null;
+			numeroDocumento: string;
+			contaGerencial: string;
+			pixChave: string;
 			descricao: string;
 			recorrenciaAtiva: boolean;
 			recorrenciaTipo: RecurrenceType;
@@ -248,7 +296,50 @@ export const lancamentoFinanceiroRepository = {
 		type: FinanceType,
 		data: {
 			dataPagamento: Date;
+			formaPagamentoId?: number | null;
+			contaBancariaDestinoId?: number | null;
 			contaBancariaTerceiroId?: number | null;
+			observacao?: string;
+		}
+	) {
+		const row = await prisma.lancamentoFinanceiro.findFirst({
+			where: { id, tenantId, type }
+		});
+		if (!row) {
+			return null;
+		}
+		const contaDestinoPatch =
+			data.contaBancariaDestinoId !== undefined ? { contaBancariaDestinoId: data.contaBancariaDestinoId } : {};
+		return prisma.lancamentoFinanceiro.update({
+			where: { id },
+			data: {
+				dataPagamento: data.dataPagamento,
+				...(data.formaPagamentoId !== undefined ? { formaPagamentoId: data.formaPagamentoId } : {}),
+				...contaDestinoPatch,
+				...(data.contaBancariaTerceiroId !== undefined
+					? { contaBancariaTerceiroId: data.contaBancariaTerceiroId }
+					: {}),
+				...(data.observacao !== undefined ? { observacao: data.observacao } : {})
+			},
+			include: includeRelacoes
+		});
+	},
+
+	async updateByIdInTenantAndType(
+		tenantId: number,
+		id: number,
+		type: FinanceType,
+		data: {
+			valor?: Prisma.Decimal;
+			dataCompetencia?: Date;
+			dataVencimento?: Date;
+			dataPagamento?: Date | null;
+			formaPagamentoId?: number | null;
+			contaBancariaDestinoId?: number | null;
+			numeroDocumento?: string;
+			contaGerencial?: string;
+			pixChave?: string;
+			descricao?: string;
 			observacao?: string;
 		}
 	) {
@@ -260,13 +351,7 @@ export const lancamentoFinanceiroRepository = {
 		}
 		return prisma.lancamentoFinanceiro.update({
 			where: { id },
-			data: {
-				dataPagamento: data.dataPagamento,
-				...(data.contaBancariaTerceiroId !== undefined
-					? { contaBancariaTerceiroId: data.contaBancariaTerceiroId }
-					: {}),
-				...(data.observacao !== undefined ? { observacao: data.observacao } : {})
-			},
+			data,
 			include: includeRelacoes
 		});
 	}

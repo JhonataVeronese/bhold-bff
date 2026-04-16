@@ -10,6 +10,7 @@ import { addMonthsUtc, addYearsUtc, parseYmdToUtcDate } from '../../utils/dates'
 import { parsePositiveInt, str } from '../../utils/strings';
 import { mapLancamentoToRow } from './financeiro.mapper';
 import { parseFinanceType, parseRecurrenceKind } from './financeiro-parsers';
+import { resolveFormaPagamentoLancamento } from './resolve-forma-pagamento-lancamento';
 
 export async function createLancamentoUseCase(
 	tenantId: number,
@@ -23,6 +24,8 @@ export async function createLancamentoUseCase(
 		throw new HttpError(400, 'valor deve ser um número maior que zero');
 	}
 
+	const hojeYmd = new Date().toISOString().slice(0, 10);
+	const dataCompetencia = body.dataCompetencia ? parseYmdToUtcDate(body.dataCompetencia) : parseYmdToUtcDate(hojeYmd);
 	const dataVencimento = parseYmdToUtcDate(body.dataVencimento);
 	let dataPagamento: Date | null = null;
 	if (body.dataPagamento !== undefined && body.dataPagamento !== null && String(body.dataPagamento).trim() !== '') {
@@ -45,6 +48,12 @@ export async function createLancamentoUseCase(
 			'Conta da empresa não encontrada neste tenant (use uma conta cadastrada em GET /contas-bancarias/empresa)'
 		);
 	}
+
+	const { formaPagamentoId, contaBancariaDestinoId, formaPagamentoTipo } = await resolveFormaPagamentoLancamento(
+		tenantId,
+		contaBancariaEmpresaId,
+		body
+	);
 
 	const counterpartyId = parsePositiveInt(body.counterpartyId);
 	if (counterpartyId === null) {
@@ -97,6 +106,12 @@ export async function createLancamentoUseCase(
 		contaBancariaTerceiroId = tid;
 	}
 
+	const numeroDocumento = str(body.numeroDocumento);
+	const contaGerencial = str(body.contaGerencial);
+	const pixChave = str(body.pixChave);
+	if (formaPagamentoTipo !== 'PIX' && pixChave) {
+		throw new HttpError(400, 'pixChave só pode ser informada quando a forma de pagamento for PIX');
+	}
 	const descricao = str(body.descricao);
 	const observacao = str(body.observacao);
 	const recorrenciaAtiva = Boolean(body.recorrenciaAtiva);
@@ -136,12 +151,18 @@ export async function createLancamentoUseCase(
 		const batch = datasVencimento.map((dataVenc, i) => ({
 			type,
 			valor: valorParcela,
+			dataCompetencia,
 			dataVencimento: dataVenc,
 			dataPagamento: null as Date | null,
 			contaBancariaEmpresaId,
+			contaBancariaDestinoId,
 			contaBancariaTerceiroId,
+			formaPagamentoId,
 			fornecedorId,
 			clienteId,
+			numeroDocumento,
+			contaGerencial,
+			pixChave,
 			descricao,
 			recorrenciaAtiva: false,
 			recorrenciaTipo,
@@ -161,12 +182,18 @@ export async function createLancamentoUseCase(
 	const created = await lancamentoFinanceiroRepository.create(tenantId, {
 		type,
 		valor: new Prisma.Decimal(String(valorNum)),
+		dataCompetencia,
 		dataVencimento,
 		dataPagamento,
 		contaBancariaEmpresaId,
+		contaBancariaDestinoId,
 		contaBancariaTerceiroId,
+		formaPagamentoId,
 		fornecedorId,
 		clienteId,
+		numeroDocumento,
+		contaGerencial,
+		pixChave,
 		descricao,
 		recorrenciaAtiva,
 		recorrenciaTipo,

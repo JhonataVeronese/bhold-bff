@@ -1,9 +1,11 @@
 import { HttpError } from '../../http/HttpError';
 import { contaBancariaEmpresaRepository } from '../../repositories/contaBancariaEmpresa.repository';
 import { lancamentoFinanceiroRepository } from '../../repositories/lancamentoFinanceiro.repository';
+import { movimentoContaEmpresaRepository } from '../../repositories/movimentoContaEmpresa.repository';
 import { monthBoundsUtcDates } from '../../utils/monthBounds';
 import { parsePositiveInt, str } from '../../utils/strings';
 import { mapExtratoFinanceiroItem } from './map-extrato-item';
+import { mapMovimentoContaItem } from './map-movimento-conta-item';
 
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 100;
@@ -67,13 +69,22 @@ export async function getExtratoFinanceiroUseCase(tenantId: number, query: Recor
 	const { start, end } = monthBoundsUtcDates(ano, mes);
 	const skip = (page - 1) * pageSize;
 
-	const [totalItems, ids] = await Promise.all([
-		lancamentoFinanceiroRepository.countExtratoMes(tenantId, contaId, start, end),
-		lancamentoFinanceiroRepository.listIdsExtratoMesOrdenados(tenantId, contaId, start, end, skip, pageSize)
+	const [lancamentos, movimentos] = await Promise.all([
+		lancamentoFinanceiroRepository.listByContaEmpresaAndPeriodo(tenantId, contaId, start, end),
+		movimentoContaEmpresaRepository.listByContaAndPeriodo(tenantId, contaId, start, end)
 	]);
-
-	const rows = await lancamentoFinanceiroRepository.findManyByIdsInOrder(ids);
-	const data = rows.map(mapExtratoFinanceiroItem);
+	const itens = [
+		...lancamentos.map((row) => ({
+			dataRef: row.dataPagamento ?? row.dataVencimento,
+			item: mapExtratoFinanceiroItem(row)
+		})),
+		...movimentos.map((row) => ({
+			dataRef: row.dataMovimento,
+			item: mapMovimentoContaItem(row)
+		}))
+	].sort((a, b) => b.dataRef.getTime() - a.dataRef.getTime());
+	const totalItems = itens.length;
+	const data = itens.slice(skip, skip + pageSize).map((entry) => entry.item);
 
 	const totalPages = totalItems === 0 ? 0 : Math.ceil(totalItems / pageSize);
 

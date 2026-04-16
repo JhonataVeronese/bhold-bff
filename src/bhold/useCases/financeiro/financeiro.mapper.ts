@@ -1,12 +1,16 @@
-import type { ContaBancariaEmpresa, ContaBancariaTerceiro } from '@prisma/client';
+import type { ContaBancariaEmpresa, ContaBancariaTerceiro, FormaPagamentoTipo } from '@prisma/client';
 import { FinanceType, RecurrenceType } from '@prisma/client';
 import type { LancamentoComRelacoes } from '../../repositories/lancamentoFinanceiro.repository';
 import { formatDateToYmd } from '../../utils/dates';
 
-type ContaBancoRotulo = Pick<
-	ContaBancariaEmpresa,
-	'bankFullName' | 'agencia' | 'agenciaDigito' | 'conta' | 'contaDigito'
->;
+type ContaBancoRotulo = {
+	nome?: string | null;
+	bankFullName: string;
+	agencia: string;
+	agenciaDigito?: string | null;
+	conta: string;
+	contaDigito?: string | null;
+};
 
 function formatAgencia(agencia: string, digito?: string | null): string {
 	const t = digito?.trim();
@@ -19,6 +23,9 @@ function formatConta(conta: string, digito?: string | null): string {
 }
 
 function buildContaBankLabel(conta: ContaBancoRotulo): string {
+	if (conta.nome?.trim()) {
+		return conta.nome;
+	}
 	const ag = formatAgencia(conta.agencia, conta.agenciaDigito);
 	const c = formatConta(conta.conta, conta.contaDigito);
 	return `${conta.bankFullName} · Ag. ${ag} · ${c}`;
@@ -49,6 +56,25 @@ export function recurrenceToJson(r: RecurrenceType): 'unica' | 'mensal' | 'anual
 	}
 }
 
+function formaPagamentoTipoToJson(
+	tipo: FormaPagamentoTipo
+): 'dinheiro' | 'pix' | 'transferencia' | 'cartao_credito' | 'cartao_debito' | 'outros' {
+	switch (tipo) {
+		case 'DINHEIRO':
+			return 'dinheiro';
+		case 'PIX':
+			return 'pix';
+		case 'TRANSFERENCIA':
+			return 'transferencia';
+		case 'CARTAO_CREDITO':
+			return 'cartao_credito';
+		case 'CARTAO_DEBITO':
+			return 'cartao_debito';
+		default:
+			return 'outros';
+	}
+}
+
 export function mapLancamentoToRow(row: LancamentoComRelacoes) {
 	let counterpartyId: number;
 	let counterpartyName: string;
@@ -68,22 +94,33 @@ export function mapLancamentoToRow(row: LancamentoComRelacoes) {
 	}
 
 	const ce = row.contaBancariaEmpresa;
+	const cd = row.contaBancariaDestino;
 	const ct = row.contaBancariaTerceiro;
+	const fp = row.formaPagamento;
 
 	return {
 		id: String(row.id),
 		kind: typeToJson(row.type),
 		valor: row.valor.toNumber(),
+		dataCompetencia: formatDateToYmd(row.dataCompetencia),
 		dataVencimento: formatDateToYmd(row.dataVencimento),
 		dataPagamento: row.dataPagamento ? formatDateToYmd(row.dataPagamento) : null,
 		/** Id da conta da empresa (caixa). Mantém o nome `contaBancariaId` por compatibilidade com clientes antigos. */
 		contaBancariaId: String(row.contaBancariaEmpresaId),
 		contaBancariaEmpresaId: String(row.contaBancariaEmpresaId),
 		contaBancariaNome: buildContaBancariaNome(ce),
+		contaBancariaDestinoId: row.contaBancariaDestinoId != null ? String(row.contaBancariaDestinoId) : null,
+		contaBancariaDestinoNome: cd != null ? buildContaBancariaNome(cd) : null,
 		contaBancariaTerceiroId: row.contaBancariaTerceiroId != null ? String(row.contaBancariaTerceiroId) : null,
 		contaBancariaTerceiroNome: ct != null ? buildContaBancariaTerceiroNome(ct) : null,
+		formaPagamentoId: row.formaPagamentoId != null ? String(row.formaPagamentoId) : null,
+		formaPagamentoNome: fp?.nome ?? null,
+		formaPagamentoTipo: fp ? formaPagamentoTipoToJson(fp.tipo) : null,
 		counterpartyId: String(counterpartyId),
 		counterpartyName,
+		numeroDocumento: row.numeroDocumento,
+		contaGerencial: row.contaGerencial,
+		pixChave: row.pixChave,
 		descricao: row.descricao,
 		recorrenciaAtiva: row.recorrenciaAtiva,
 		recorrenciaTipo: recurrenceToJson(row.recorrenciaTipo),

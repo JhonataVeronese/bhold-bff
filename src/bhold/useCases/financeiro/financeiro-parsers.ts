@@ -58,10 +58,11 @@ function parseRequiredPositiveIntQuery(value: unknown, field: string): number | 
 }
 
 export function parseFinanceType(v: unknown, field = 'type'): FinanceType {
-	const s = str(v).toLowerCase();
+	const raw = str(v);
+	const s = raw.toLowerCase();
 	if (s === 'payable') return 'PAYABLE';
 	if (s === 'receivable') return 'RECEIVABLE';
-	throw new HttpError(400, `${field} deve ser payable ou receivable`);
+	throw new HttpError(400, `${field} deve ser PAYABLE ou RECEIVABLE`);
 }
 
 export function parseOptionalFinanceTypeQuery(query: Record<string, unknown>): FinanceType | undefined {

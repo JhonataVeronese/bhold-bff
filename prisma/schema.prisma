@@ -33,6 +33,20 @@ enum RecurrenceType {
   @@map("RecurrenceType")
 }
 
+enum FormaPagamentoTipo {
+  DINHEIRO
+  PIX
+  TRANSFERENCIA
+  CARTAO_CREDITO
+  CARTAO_DEBITO
+  OUTROS
+}
+
+enum MovimentoContaTipo {
+  ABERTURA
+  AJUSTE
+}
+
 /// Empresa / organização (isolamento multi-tenant).
 model Tenant {
   id           Int      @id @default(autoincrement())
@@ -53,7 +67,9 @@ model Tenant {
   contasBancariasTerceiro ContaBancariaTerceiro[]
   usuarios                Usuario[]
   clientes                Cliente[]
+  formasPagamento         FormaPagamento[]
   lancamentosFinanceiros  LancamentoFinanceiro[]
+  movimentosContaEmpresa  MovimentoContaEmpresa[]
 }
 
 model Fornecedor {
@@ -97,6 +113,7 @@ model ContaBancariaEmpresa {
   id                     Int                    @id @default(autoincrement())
   tenantId               Int
   tenant                 Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  nome                   String
   bankIspb               String
   bankCode               Int?
   bankFullName           String
@@ -106,10 +123,16 @@ model ContaBancariaEmpresa {
   contaDigito            String?
   tipoConta              TipoContaBancaria
   pixChave               String                 @default("")
+  dataSaldoInicial       DateTime?              @db.Date
+  saldoInicial           Decimal?               @db.Decimal(18, 2)
   createdAt              DateTime               @default(now())
-  lancamentosFinanceiros LancamentoFinanceiro[]
+  lancamentosFinanceirosOrigem  LancamentoFinanceiro[] @relation("LancamentoContaOrigem")
+  lancamentosFinanceirosDestino LancamentoFinanceiro[] @relation("LancamentoContaDestino")
+  formasPagamentoPadrao  FormaPagamento[]
+  movimentos             MovimentoContaEmpresa[]
 
   @@index([tenantId])
+  @@index([tenantId, nome])
 }
 
 /// Conta bancária de terceiro (cliente ou fornecedor): dados para pagamento/recebimento, não é o caixa da empresa.
@@ -144,18 +167,26 @@ model LancamentoFinanceiro {
   tenant                  Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   type                    FinanceType
   valor                   Decimal              @db.Decimal(18, 2)
+  dataCompetencia         DateTime             @db.Date
   dataVencimento          DateTime             @db.Date
   dataPagamento           DateTime?            @db.Date
   /// Conta da própria empresa onde o caixa se movimenta.
   contaBancariaEmpresaId  Int
-  contaBancariaEmpresa    ContaBancariaEmpresa @relation(fields: [contaBancariaEmpresaId], references: [id], onDelete: Restrict)
+  contaBancariaEmpresa    ContaBancariaEmpresa @relation("LancamentoContaOrigem", fields: [contaBancariaEmpresaId], references: [id], onDelete: Restrict)
   /// Opcional: conta bancária do terceiro (destino em pagamentos / referência em recebimentos).
   contaBancariaTerceiroId Int?
   contaBancariaTerceiro   ContaBancariaTerceiro? @relation(fields: [contaBancariaTerceiroId], references: [id], onDelete: SetNull)
+  contaBancariaDestinoId  Int?
+  contaBancariaDestino    ContaBancariaEmpresa? @relation("LancamentoContaDestino", fields: [contaBancariaDestinoId], references: [id], onDelete: SetNull)
+  formaPagamentoId        Int?
+  formaPagamento          FormaPagamento?      @relation(fields: [formaPagamentoId], references: [id], onDelete: Restrict)
   fornecedorId            Int?
   fornecedor              Fornecedor?          @relation(fields: [fornecedorId], references: [id], onDelete: Restrict)
   clienteId               Int?
   cliente                 Cliente?             @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  numeroDocumento         String               @default("")
+  contaGerencial          String               @default("")
+  pixChave                String               @default("")
   descricao               String               @default("")
   recorrenciaAtiva        Boolean              @default(false)
   recorrenciaTipo         RecurrenceType
@@ -170,8 +201,50 @@ model LancamentoFinanceiro {
 
   @@index([tenantId])
   @@index([tenantId, type])
+  @@index([dataCompetencia])
   @@index([contaBancariaTerceiroId])
+  @@index([contaBancariaDestinoId])
+  @@index([formaPagamentoId])
   @@index([recorrenciaGrupoId])
+}
+
+model FormaPagamento {
+  id             Int                @id @default(autoincrement())
+  tenantId       Int
+  tenant         Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  nome           String
+  tipo           FormaPagamentoTipo
+  contaBancariaEmpresaId Int?
+  contaBancariaEmpresa   ContaBancariaEmpresa? @relation(fields: [contaBancariaEmpresaId], references: [id], onDelete: SetNull)
+  prazoDias      Int?
+  taxaPercentual Decimal?           @db.Decimal(5, 2)
+  ativo          Boolean            @default(true)
+  padrao         Boolean            @default(false)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  lancamentos    LancamentoFinanceiro[]
+
+  @@unique([tenantId, nome])
+  @@index([tenantId])
+  @@index([tenantId, tipo])
+}
+
+model MovimentoContaEmpresa {
+  id                   Int                 @id @default(autoincrement())
+  tenantId             Int
+  tenant               Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  contaBancariaEmpresaId Int
+  contaBancariaEmpresa ContaBancariaEmpresa @relation(fields: [contaBancariaEmpresaId], references: [id], onDelete: Cascade)
+  tipo                 MovimentoContaTipo
+  valor                Decimal             @db.Decimal(18, 2)
+  dataMovimento        DateTime            @db.Date
+  descricao            String              @default("")
+  observacao           String              @default("")
+  createdAt            DateTime            @default(now())
+
+  @@index([tenantId])
+  @@index([contaBancariaEmpresaId])
+  @@index([dataMovimento])
 }
 
 model Usuario {

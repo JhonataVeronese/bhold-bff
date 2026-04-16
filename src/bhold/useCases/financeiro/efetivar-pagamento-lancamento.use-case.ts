@@ -5,6 +5,7 @@ import { lancamentoFinanceiroRepository } from '../../repositories/lancamentoFin
 import { parseYmdToUtcDate } from '../../utils/dates';
 import { parsePositiveInt, str } from '../../utils/strings';
 import { mapLancamentoToRow } from './financeiro.mapper';
+import { resolveFormaPagamentoLancamento } from './resolve-forma-pagamento-lancamento';
 
 /**
  * Registra quitação: `dataPagamento` (YYYY-MM-DD).
@@ -22,11 +23,7 @@ export async function efetivarPagamentoLancamentoUseCase(
 	}
 
 	const dataPagamentoRaw = body.dataPagamento;
-	if (
-		dataPagamentoRaw === undefined ||
-		dataPagamentoRaw === null ||
-		String(dataPagamentoRaw).trim() === ''
-	) {
+	if (dataPagamentoRaw === undefined || dataPagamentoRaw === null || String(dataPagamentoRaw).trim() === '') {
 		throw new HttpError(400, 'dataPagamento é obrigatório (YYYY-MM-DD)');
 	}
 	const dataPagamento = parseYmdToUtcDate(dataPagamentoRaw);
@@ -36,7 +33,14 @@ export async function efetivarPagamentoLancamentoUseCase(
 		throw new HttpError(404, 'Lançamento não encontrado');
 	}
 
-	let contaBancariaTerceiroId: number | null | undefined = undefined;
+	const shouldUpdateFormaPagamento =
+		Object.prototype.hasOwnProperty.call(body, 'formaPagamentoId') ||
+		Object.prototype.hasOwnProperty.call(body, 'contaBancariaDestinoId');
+	const formaPagamentoData = shouldUpdateFormaPagamento
+		? await resolveFormaPagamentoLancamento(tenantId, rowExisting.contaBancariaEmpresaId, body)
+		: null;
+
+	let contaBancariaTerceiroId: number | null | undefined;
 	if (Object.prototype.hasOwnProperty.call(body, 'contaBancariaTerceiroId')) {
 		const raw = body.contaBancariaTerceiroId;
 		if (raw === null || raw === '' || (typeof raw === 'string' && raw.trim() === '')) {
@@ -69,6 +73,7 @@ export async function efetivarPagamentoLancamentoUseCase(
 	const observacao = str(body.observacao);
 	const updated = await lancamentoFinanceiroRepository.updatePagamentoEfetivado(tenantId, id, type, {
 		dataPagamento,
+		...(formaPagamentoData !== null ? formaPagamentoData : {}),
 		...(contaBancariaTerceiroId !== undefined ? { contaBancariaTerceiroId } : {}),
 		...(observacao !== '' ? { observacao } : {})
 	});
