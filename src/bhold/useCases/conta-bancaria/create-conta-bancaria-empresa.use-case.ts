@@ -5,6 +5,7 @@ import { contaBancariaEmpresaRepository } from '../../repositories/contaBancaria
 import { movimentoContaEmpresaRepository } from '../../repositories/movimentoContaEmpresa.repository';
 import { parseYmdToUtcDate } from '../../utils/dates';
 import { str } from '../../utils/strings';
+import { ensurePixContaPadraoWhenNovaContaBancaria } from '../forma-pagamento/ensure-pix-conta-padrao';
 import { mapContaBancariaEmpresaRow, parseTipoConta } from './conta-bancaria.mapper';
 
 export async function createContaBancariaEmpresaUseCase(tenantId: number, body: Record<string, unknown>) {
@@ -91,6 +92,8 @@ export async function createContaBancariaEmpresaUseCase(tenantId: number, body: 
 				tx
 			);
 		}
+
+		await ensurePixContaPadraoWhenNovaContaBancaria(tenantId, contaCriada.id, nome, tx);
 
 		return contaCriada;
 	});

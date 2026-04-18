@@ -4,7 +4,7 @@
 	"description": "BFF BHold",
 	"main": "dist/infra/http/server.js",
 	"engines": {
-		"node": "18.x || 20.x || 22.x",
+		"node": ">=18",
 		"yarn": "1.22.x"
 	},
 	"author": "BHold",
@@ -46,7 +46,7 @@
 		"@types/cors": "^2.8.13",
 		"@types/express": "^4.17.13",
 		"@types/jsonwebtoken": "^9.0.10",
-		"@types/node": "^17.0.23",
+		"@types/node": "^22.15.0",
 		"@typescript-eslint/eslint-plugin": "^5.17.0",
 		"@typescript-eslint/parser": "^5.17.0",
 		"eslint": "^7.12.1",

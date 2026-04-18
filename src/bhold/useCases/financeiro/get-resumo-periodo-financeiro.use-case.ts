@@ -45,33 +45,57 @@ function mapOverdueTableRow(
 	};
 }
 
+function defaultPeriodoMesCorrenteAteHojeUtc(): { dataDe: Date; dataAte: Date } {
+	const now = new Date();
+	const y = now.getUTCFullYear();
+	const mo = now.getUTCMonth();
+	const dia = now.getUTCDate();
+	return {
+		dataDe: new Date(Date.UTC(y, mo, 1, 12, 0, 0, 0)),
+		dataAte: new Date(Date.UTC(y, mo, dia, 12, 0, 0, 0))
+	};
+}
+
 export async function getResumoPeriodoFinanceiroUseCase(tenantId: number, query: Record<string, unknown>) {
 	const dataDeRaw = query.dataDe;
 	const dataAteRaw = query.dataAte;
 
-	if (
-		dataDeRaw === undefined ||
-		dataDeRaw === null ||
-		String(dataDeRaw).trim() === '' ||
-		dataAteRaw === undefined ||
-		dataAteRaw === null ||
-		String(dataAteRaw).trim() === ''
-	) {
-		throw new HttpError(400, 'Parâmetros obrigatórios: dataDe e dataAte no formato YYYY-MM-DD.');
+	const bothMissing =
+		(dataDeRaw === undefined || dataDeRaw === null || String(dataDeRaw).trim() === '') &&
+		(dataAteRaw === undefined || dataAteRaw === null || String(dataAteRaw).trim() === '');
+	const oneMissing =
+		(dataDeRaw === undefined || dataDeRaw === null || String(dataDeRaw).trim() === '') !==
+		(dataAteRaw === undefined || dataAteRaw === null || String(dataAteRaw).trim() === '');
+
+	if (oneMissing) {
+		throw new HttpError(
+			400,
+			'Informe dataDe e dataAte juntos (YYYY-MM-DD), ou omita ambos para o mês corrente até hoje.'
+		);
 	}
 
-	const dataDe = parseYmdToUtcDate(dataDeRaw);
-	const dataAte = parseYmdToUtcDate(dataAteRaw);
+	let dataDe: Date;
+	let dataAte: Date;
+	let periodoPadraoMesAteHoje = false;
+	if (bothMissing) {
+		({ dataDe, dataAte } = defaultPeriodoMesCorrenteAteHojeUtc());
+		periodoPadraoMesAteHoje = true;
+	} else {
+		dataDe = parseYmdToUtcDate(dataDeRaw);
+		dataAte = parseYmdToUtcDate(dataAteRaw);
+	}
 	if (dataDe.getTime() > dataAte.getTime()) {
 		throw new HttpError(400, 'O período informado é inválido: dataDe deve ser menor ou igual a dataAte.');
 	}
 
-	const now = new Date();
+	const fimDiaAnteriorAoPeriodo = new Date(dataDe);
+	fimDiaAnteriorAoPeriodo.setUTCDate(fimDiaAnteriorAoPeriodo.getUTCDate() - 1);
+	fimDiaAnteriorAoPeriodo.setUTCHours(12, 0, 0, 0);
 
 	const [
-		totalMovimentosAteAgora,
-		totalRecebidoAteAgora,
-		totalPagoAteAgora,
+		movAteDiaAnterior,
+		recebidoAteDiaAnterior,
+		pagoAteDiaAnterior,
 		contasPagas,
 		contasRecebidas,
 		contasAPagar,
@@ -81,9 +105,9 @@ export async function getResumoPeriodoFinanceiroUseCase(tenantId: number, query:
 		vencidasAPagar,
 		vencidasAReceber
 	] = await Promise.all([
-		movimentoContaEmpresaRepository.sumByTenantUntil(tenantId, now),
-		dashboardFinanceiroRepository.sumPaidUntil(tenantId, 'RECEIVABLE', now),
-		dashboardFinanceiroRepository.sumPaidUntil(tenantId, 'PAYABLE', now),
+		movimentoContaEmpresaRepository.sumByTenantUntil(tenantId, fimDiaAnteriorAoPeriodo),
+		dashboardFinanceiroRepository.sumPaidUntil(tenantId, 'RECEIVABLE', fimDiaAnteriorAoPeriodo),
+		dashboardFinanceiroRepository.sumPaidUntil(tenantId, 'PAYABLE', fimDiaAnteriorAoPeriodo),
 		dashboardFinanceiroRepository.sumPaidInRange(tenantId, 'PAYABLE', dataDe, dataAte),
 		dashboardFinanceiroRepository.sumPaidInRange(tenantId, 'RECEIVABLE', dataDe, dataAte),
 		dashboardFinanceiroRepository.sumDueInRange(tenantId, 'PAYABLE', dataDe, dataAte),
@@ -94,10 +118,12 @@ export async function getResumoPeriodoFinanceiroUseCase(tenantId: number, query:
 		lancamentoFinanceiroRepository.listOpenOverdueByTypeUntil(tenantId, 'RECEIVABLE', dataAte)
 	]);
 
+	const saldoInicialPeriodo = movAteDiaAnterior + recebidoAteDiaAnterior - pagoAteDiaAnterior;
+	const saldoFinalRealizadoPeriodo = saldoInicialPeriodo + contasRecebidas - contasPagas;
+
 	const receitasMap = new Map(receitasPorDia.map((row) => [formatDateToYmd(row.dia), row.total?.toNumber() ?? 0]));
 	const despesasMap = new Map(despesasPorDia.map((row) => [formatDateToYmd(row.dia), row.total?.toNumber() ?? 0]));
 	const points = daysBetweenInclusive(dataDe, dataAte);
-	const saldoAtual = totalMovimentosAteAgora + totalRecebidoAteAgora - totalPagoAteAgora;
 
 	return {
 		periodo: {
@@ -105,13 +131,13 @@ export async function getResumoPeriodoFinanceiroUseCase(tenantId: number, query:
 			dataAte: formatDateToYmd(dataAte)
 		},
 		cards: {
-			saldoInicial: saldoAtual,
+			saldoInicial: saldoInicialPeriodo,
 			contasPagas,
 			contasRecebidas,
 			contasAPagar,
 			contasAReceber,
 			saldoFinalEsperado: null,
-			saldoFinalRealizado: null
+			saldoFinalRealizado: saldoFinalRealizadoPeriodo
 		},
 		chart: {
 			receitas: points.map((date) => {
@@ -128,7 +154,8 @@ export async function getResumoPeriodoFinanceiroUseCase(tenantId: number, query:
 			contasVencidasAReceber: vencidasAReceber.map(mapOverdueTableRow)
 		},
 		meta: {
-			source: 'api' as const
+			source: 'api' as const,
+			periodoPadraoMesAteHojeUtc: periodoPadraoMesAteHoje
 		}
 	};
 }

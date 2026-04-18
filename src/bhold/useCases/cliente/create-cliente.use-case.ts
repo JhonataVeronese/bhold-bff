@@ -11,7 +11,7 @@ import {
 import { mapClienteToResponse } from './cliente.mapper';
 
 export async function createClienteUseCase(tenantId: number, body: Record<string, unknown>) {
-	const extracted = extractFornecedorCampos(body);
+	const extracted = extractFornecedorCampos(body, { consumidorFinalZeros: true });
 	const replicarCadastro = parseReplicarCadastroFlag(body);
 	validateFornecedorCreate(extracted);
 	try {

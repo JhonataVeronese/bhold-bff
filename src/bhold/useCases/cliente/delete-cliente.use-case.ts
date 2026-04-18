@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client';
+import { isConsumidorFinalCnpj } from '../../constants/cliente';
 import { HttpError } from '../../http/HttpError';
 import { clienteRepository } from '../../repositories/cliente.repository';
 import { parsePositiveInt } from '../../utils/strings';
@@ -7,6 +8,13 @@ export async function deleteClienteUseCase(tenantId: number, idRaw: unknown) {
 	const id = parsePositiveInt(idRaw);
 	if (id === null) {
 		throw new HttpError(400, 'id inválido');
+	}
+	const existing = await clienteRepository.findByIdInTenant(tenantId, id);
+	if (!existing) {
+		throw new HttpError(404, 'Cliente não encontrado');
+	}
+	if (isConsumidorFinalCnpj(existing.cnpj)) {
+		throw new HttpError(400, 'Cliente consumidor final não pode ser excluído.');
 	}
 	try {
 		const deleted = await clienteRepository.deleteByIdInTenant(tenantId, id);

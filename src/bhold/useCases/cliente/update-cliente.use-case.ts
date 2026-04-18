@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client';
+import { isConsumidorFinalCnpj } from '../../constants/cliente';
 import { HttpError } from '../../http/HttpError';
 import { clienteRepository } from '../../repositories/cliente.repository';
 import { extractFornecedorCampos, validateFornecedorCreate } from '../fornecedor/parse-fornecedor-body';
@@ -10,7 +11,14 @@ export async function updateClienteUseCase(tenantId: number, idRaw: unknown, bod
 	if (id === null) {
 		throw new HttpError(400, 'id inválido');
 	}
-	const extracted = extractFornecedorCampos(body);
+	const existing = await clienteRepository.findByIdInTenant(tenantId, id);
+	if (!existing) {
+		throw new HttpError(404, 'Cliente não encontrado');
+	}
+	if (isConsumidorFinalCnpj(existing.cnpj)) {
+		throw new HttpError(400, 'Cliente consumidor final não pode ser alterado pelo cadastro.');
+	}
+	const extracted = extractFornecedorCampos(body, { consumidorFinalZeros: true });
 	validateFornecedorCreate(extracted);
 	try {
 		const updated = await clienteRepository.update(tenantId, id, {

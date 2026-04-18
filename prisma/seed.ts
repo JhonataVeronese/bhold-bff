@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import { prisma } from '../src/infra/db/prisma/client';
 import { ensureCarteiraContaForTenant } from '../src/bhold/useCases/conta-bancaria/ensure-carteira-default';
+import { ensureConsumidorFinalClienteForTenant } from '../src/bhold/useCases/cliente/ensure-consumidor-final-cliente';
 import { ensureDefaultFormasPagamentoForTenant } from '../src/bhold/useCases/forma-pagamento/default-formas-pagamento';
 
 /** Credenciais de teste (super usuário). Altere em produção. */
@@ -46,6 +47,7 @@ async function main() {
 	for (const item of tenants) {
 		await ensureDefaultFormasPagamentoForTenant(item.id);
 		await ensureCarteiraContaForTenant(item.id);
+		await ensureConsumidorFinalClienteForTenant(item.id);
 	}
 
 	console.log(`Seed: tenant "system" (id=${tenant.id}), super usuário ${SUPER_EMAIL} / ${SUPER_PASSWORD}`);

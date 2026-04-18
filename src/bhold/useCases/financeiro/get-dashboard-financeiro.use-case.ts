@@ -1,4 +1,6 @@
+import { HttpError } from '../../http/HttpError';
 import { dashboardFinanceiroRepository } from '../../repositories/dashboardFinanceiro.repository';
+import { formatDateToYmd, parseYmdToUtcDate } from '../../utils/dates';
 import { parsePositiveInt } from '../../utils/strings';
 
 const MESES_PT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -39,13 +41,47 @@ function parseYear(raw: unknown): number {
 	return new Date().getUTCFullYear();
 }
 
+function resolvePeriodoPrincipalDashboard(
+	query: Record<string, unknown>,
+	anoAtual: number,
+	mesAtual0: number,
+	diaHoje: number
+): { start: Date; end: Date; origem: 'mes_corrente_ate_hoje_utc' | 'intervalo_personalizado' } {
+	const de = query.dataDe;
+	const ate = query.dataAte;
+	const deEmpty = de === undefined || de === null || String(de).trim() === '';
+	const ateEmpty = ate === undefined || ate === null || String(ate).trim() === '';
+	if (deEmpty && ateEmpty) {
+		return {
+			start: new Date(Date.UTC(anoAtual, mesAtual0, 1, 12, 0, 0, 0)),
+			end: new Date(Date.UTC(anoAtual, mesAtual0, diaHoje, 12, 0, 0, 0)),
+			origem: 'mes_corrente_ate_hoje_utc'
+		};
+	}
+	if (deEmpty !== ateEmpty) {
+		throw new HttpError(400, 'Informe dataDe e dataAte juntos (YYYY-MM-DD) ou omita ambos.');
+	}
+	return {
+		start: parseYmdToUtcDate(de),
+		end: parseYmdToUtcDate(ate),
+		origem: 'intervalo_personalizado'
+	};
+}
+
 export async function getDashboardFinanceiroUseCase(tenantId: number, query: Record<string, unknown>) {
 	const now = new Date();
 	const ano = parseYear(query.ano ?? query.year);
 	const mesAtual = now.getUTCMonth();
 	const anoAtual = now.getUTCFullYear();
+	const diaHoje = now.getUTCDate();
 
-	const { start: inicioMes, end: fimMes } = monthBoundsUtc(anoAtual, mesAtual);
+	const periodoPrincipal = resolvePeriodoPrincipalDashboard(query, anoAtual, mesAtual, diaHoje);
+	if (periodoPrincipal.start.getTime() > periodoPrincipal.end.getTime()) {
+		throw new HttpError(400, 'Período inválido: dataDe deve ser menor ou igual a dataAte.');
+	}
+	const inicioMes = periodoPrincipal.start;
+	const fimMes = periodoPrincipal.end;
+
 	const mesAnteriorIdx = mesAtual === 0 ? 11 : mesAtual - 1;
 	const anoMesAnterior = mesAtual === 0 ? anoAtual - 1 : anoAtual;
 	const { start: inicioMesAnterior, end: fimMesAnterior } = monthBoundsUtc(anoMesAnterior, mesAnteriorIdx);
@@ -189,6 +225,11 @@ export async function getDashboardFinanceiroUseCase(tenantId: number, query: Rec
 			mesReferenciaCartoes: {
 				ano: anoAtual,
 				mes: mesAtual + 1
+			},
+			periodoPrincipal: {
+				origem: periodoPrincipal.origem,
+				dataDe: formatDateToYmd(periodoPrincipal.start),
+				dataAte: formatDateToYmd(periodoPrincipal.end)
 			}
 		},
 		resumo: {
@@ -230,13 +271,18 @@ export async function getDashboardFinanceiroUseCase(tenantId: number, query: Rec
 			dias: movimentacaoSemanal
 		},
 		composicaoFluxo: {
-			periodo: { tipo: 'mes_corrente_utc', inicio: inicioMes.toISOString(), fim: fimMes.toISOString() },
+			periodo: {
+				tipo: periodoPrincipal.origem,
+				inicio: inicioMes.toISOString(),
+				fim: fimMes.toISOString()
+			},
 			totalLancamentos: totalLancamentosMes,
 			valorTotalComposto: totalComp,
 			categorias
 		},
 		abrangenciaPorEstado: {
-			fonte: 'fornecedor.uf em contas a pagar; cliente.uf em contas a receber (caixa no mês)',
+			fonte:
+				'fornecedor.uf em contas a pagar; cliente.uf em contas a receber (caixa quitado no período principal; ver meta.periodoPrincipal)',
 			recebimentos: {
 				total: recebTotalMesUf,
 				porUf: recebimentosPorUfLista,

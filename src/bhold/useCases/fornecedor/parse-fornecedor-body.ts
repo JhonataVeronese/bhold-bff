@@ -1,3 +1,4 @@
+import { CONSUMIDOR_FINAL_CNPJ } from '../../constants/cliente';
 import { HttpError } from '../../http/HttpError';
 import { normalizeCnpj } from '../../utils/cnpj';
 
@@ -16,14 +17,20 @@ function str(v: unknown): string {
 
 export { normalizeCnpj };
 
-export function extractFornecedorCampos(body: Jsonish): {
+export function extractFornecedorCampos(
+	body: Jsonish,
+	options?: { consumidorFinalZeros?: boolean }
+): {
 	cnpj: string;
 	razaoSocial: string;
 	nomeFantasia: string;
 	municipio: string;
 	uf: string;
 } {
-	const cnpj = normalizeCnpj(body.cnpj ?? body.cnpj_raiz);
+	let cnpj = normalizeCnpj(body.cnpj ?? body.cnpj_raiz);
+	if (options?.consumidorFinalZeros && /^0+$/.test(cnpj)) {
+		cnpj = CONSUMIDOR_FINAL_CNPJ;
+	}
 	let razaoSocial = str(body.razao_social ?? body.razaoSocial);
 	let nomeFantasia = str(body.nome_fantasia ?? body.nomeFantasia);
 	let municipio = str(body.municipio);

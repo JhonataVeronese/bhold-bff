@@ -3,6 +3,7 @@ import { tenantRepository } from '../../repositories/tenant.repository';
 import { normalizeCnpj } from '../../utils/cnpj';
 import { normalizeSlug, str } from '../../utils/strings';
 import { ensureCarteiraContaForTenant } from '../conta-bancaria/ensure-carteira-default';
+import { ensureConsumidorFinalClienteForTenant } from '../cliente/ensure-consumidor-final-cliente';
 import { ensureDefaultFormasPagamentoForTenant } from '../forma-pagamento/default-formas-pagamento';
 import { mapTenantToResponse } from './tenant.mapper';
 
@@ -49,5 +50,6 @@ export async function createTenantUseCase(body: Record<string, unknown>) {
 	});
 	await ensureDefaultFormasPagamentoForTenant(created.id);
 	await ensureCarteiraContaForTenant(created.id);
+	await ensureConsumidorFinalClienteForTenant(created.id);
 	return mapTenantToResponse(created);
 }
