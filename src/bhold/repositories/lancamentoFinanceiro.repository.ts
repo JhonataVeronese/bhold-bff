@@ -6,6 +6,11 @@ const includeRelacoes = {
 	contaBancariaDestino: true,
 	contaBancariaTerceiro: true,
 	formaPagamento: true,
+	planoConta: {
+		include: {
+			grupo: true
+		}
+	},
 	fornecedor: true,
 	cliente: true
 } satisfies Prisma.LancamentoFinanceiroInclude;
@@ -184,6 +189,7 @@ export const lancamentoFinanceiroRepository = {
 			contaBancariaDestinoId: number | null;
 			contaBancariaTerceiroId: number | null;
 			formaPagamentoId: number | null;
+			planoContaId: number | null;
 			fornecedorId: number | null;
 			clienteId: number | null;
 			numeroDocumento: string;
@@ -210,6 +216,7 @@ export const lancamentoFinanceiroRepository = {
 				contaBancariaDestinoId: data.contaBancariaDestinoId,
 				contaBancariaTerceiroId: data.contaBancariaTerceiroId,
 				formaPagamentoId: data.formaPagamentoId,
+				planoContaId: data.planoContaId,
 				fornecedorId: data.fornecedorId,
 				clienteId: data.clienteId,
 				numeroDocumento: data.numeroDocumento,
@@ -239,6 +246,7 @@ export const lancamentoFinanceiroRepository = {
 			contaBancariaDestinoId: number | null;
 			contaBancariaTerceiroId: number | null;
 			formaPagamentoId: number | null;
+			planoContaId: number | null;
 			fornecedorId: number | null;
 			clienteId: number | null;
 			numeroDocumento: string;
@@ -297,6 +305,7 @@ export const lancamentoFinanceiroRepository = {
 		data: {
 			dataPagamento: Date;
 			formaPagamentoId?: number | null;
+			planoContaId?: number | null;
 			contaBancariaDestinoId?: number | null;
 			contaBancariaTerceiroId?: number | null;
 			observacao?: string;

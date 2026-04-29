@@ -11,6 +11,7 @@ import { parsePositiveInt, str } from '../../utils/strings';
 import { mapLancamentoToRow } from './financeiro.mapper';
 import { parseFinanceType, parseRecurrenceKind } from './financeiro-parsers';
 import { resolveFormaPagamentoLancamento } from './resolve-forma-pagamento-lancamento';
+import { resolvePlanoContaLancamento } from './resolve-plano-conta-lancamento';
 
 export async function createLancamentoUseCase(
 	tenantId: number,
@@ -107,7 +108,7 @@ export async function createLancamentoUseCase(
 	}
 
 	const numeroDocumento = str(body.numeroDocumento);
-	const contaGerencial = str(body.contaGerencial);
+	const planoContaData = await resolvePlanoContaLancamento(tenantId, type, body);
 	const pixChave = str(body.pixChave);
 	if (formaPagamentoTipo !== 'PIX' && pixChave) {
 		throw new HttpError(400, 'pixChave só pode ser informada quando a forma de pagamento for PIX');
@@ -158,10 +159,11 @@ export async function createLancamentoUseCase(
 			contaBancariaDestinoId,
 			contaBancariaTerceiroId,
 			formaPagamentoId,
+			planoContaId: planoContaData.planoContaId,
 			fornecedorId,
 			clienteId,
 			numeroDocumento,
-			contaGerencial,
+			contaGerencial: planoContaData.contaGerencial,
 			pixChave,
 			descricao,
 			recorrenciaAtiva: false,
@@ -189,10 +191,11 @@ export async function createLancamentoUseCase(
 		contaBancariaDestinoId,
 		contaBancariaTerceiroId,
 		formaPagamentoId,
+		planoContaId: planoContaData.planoContaId,
 		fornecedorId,
 		clienteId,
 		numeroDocumento,
-		contaGerencial,
+		contaGerencial: planoContaData.contaGerencial,
 		pixChave,
 		descricao,
 		recorrenciaAtiva,

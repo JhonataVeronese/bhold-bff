@@ -1,0 +1,1080 @@
+{
+  "grupos": [
+    {
+      "codigo": "1",
+      "descricao": "OUTRAS RECEITAS",
+      "nivel": 1,
+      "codigoPai": null
+    },
+    {
+      "codigo": "1.1",
+      "descricao": "RECEITAS OPERACIONAIS",
+      "nivel": 2,
+      "codigoPai": "1"
+    },
+    {
+      "codigo": "2",
+      "descricao": "DESPESAS ADMINISTRATIVAS",
+      "nivel": 1,
+      "codigoPai": null
+    },
+    {
+      "codigo": "3",
+      "descricao": "DESPESAS OPERACIONAIS",
+      "nivel": 1,
+      "codigoPai": null
+    },
+    {
+      "codigo": "4",
+      "descricao": "RECURSOS HUMANOS",
+      "nivel": 1,
+      "codigoPai": null
+    },
+    {
+      "codigo": "5",
+      "descricao": "DESPESAS FINANCEIRAS",
+      "nivel": 1,
+      "codigoPai": null
+    },
+    {
+      "codigo": "6",
+      "descricao": "OUTRAS DESPESAS",
+      "nivel": 1,
+      "codigoPai": null
+    },
+    {
+      "codigo": "8",
+      "descricao": "IMPOSTOS / TAXAS",
+      "nivel": 1,
+      "codigoPai": null
+    },
+    {
+      "codigo": "9",
+      "descricao": "- IMOBILIZADO",
+      "nivel": 1,
+      "codigoPai": null
+    }
+  ],
+  "contas": [
+    {
+      "descricao": "REEMBOLSOS",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1.1"
+    },
+    {
+      "descricao": "SIMULADOS / PROVAS",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1.1"
+    },
+    {
+      "descricao": "SERVIÇO DE COZINHEIRA",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1.1"
+    },
+    {
+      "descricao": "SERVIÇO DE FAXINEIRA",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1.1"
+    },
+    {
+      "descricao": "SERVIÇO DE PASSADEIRA",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1.1"
+    },
+    {
+      "descricao": "PAGAMENTO - DEPÓSITO(TERCEIROS)",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1.1"
+    },
+    {
+      "descricao": "TX DE TRANSFERENCIA ALUNO",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1.1"
+    },
+    {
+      "descricao": "7.04. RECEBIMENTO DE VENDAS A VISTA",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1.1"
+    },
+    {
+      "descricao": "PAGAMENTO - CONTRATO CONSTRUÇÃO",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1.1"
+    },
+    {
+      "descricao": "ADIANTAMENTO DE RECEBIMENTO",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1.1"
+    },
+    {
+      "descricao": "RECEITA DE VENDA - MILHO",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1.1"
+    },
+    {
+      "descricao": "RECEITA DE VENDA - SOJA",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1.1"
+    },
+    {
+      "descricao": "7.02. VENDAS A VISTA",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1.1"
+    },
+    {
+      "descricao": "PAGAMENTO - CONTRATO MANUTENÇÃO",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1.1"
+    },
+    {
+      "descricao": "RECEITA TÉCNICA - RECEITA DE OBRAS",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1.1"
+    },
+    {
+      "descricao": "7.03. RECEBIMENTO DE VENDAS A PRAZO",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1.1"
+    },
+    {
+      "descricao": "7.01. VENDAS A PRAZO",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1.1"
+    },
+    {
+      "descricao": "RECEITA DE BOLETOS",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1.1"
+    },
+    {
+      "descricao": "RECEITAS DO SITE",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1.1"
+    },
+    {
+      "descricao": "RECEBIMENTO MATERIAL / MENSALIDADES",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1.1"
+    },
+    {
+      "descricao": "RECEITA DE CARTÃO DE CRÉDITO",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1.1"
+    },
+    {
+      "descricao": "RECEITAS NÃO OPERACIONAIS - EMPRÉSTIMOS CONTRATADOS",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1"
+    },
+    {
+      "descricao": "8.03. RECEITA DE PRODUTOS",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1"
+    },
+    {
+      "descricao": "8.04. RECEITAS DE SERVICOS",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1"
+    },
+    {
+      "descricao": "RECEITA DE VENDAS - OUTROS",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1"
+    },
+    {
+      "descricao": "RECEITAS NÃO OPERACIONAIS - RECEITAS DIVERSAS",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1"
+    },
+    {
+      "descricao": "EMPRESTIMO / CAPITAL DE GIRO",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1"
+    },
+    {
+      "descricao": "JUROS E MULTAS SOBRE RECEITAS",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1"
+    },
+    {
+      "descricao": "RECEITAS NÃO OPERACIONAIS - EMPRÉSTIMOS CONTRATADOS",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1"
+    },
+    {
+      "descricao": "RECEBIMENTO CRÉDITO MENSALIDADES / MATERIAIS / MATRÍCULAS",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1"
+    },
+    {
+      "descricao": "RECEBIMENTO PROMISSÓRIA MENSALIDADES / MATERIAIS / MATRÍCULAS",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1"
+    },
+    {
+      "descricao": "RECEBIMENTO CHEQUES MENSALIDADES / MATERIAL / MATRÍCULAS",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1"
+    },
+    {
+      "descricao": "RECEITAS MÁQUINA DE CAFÉ",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1"
+    },
+    {
+      "descricao": "RECEITAS DE ESTACIONAMENTO",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1"
+    },
+    {
+      "descricao": "RECEITA DE ALUGUEL",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1"
+    },
+    {
+      "descricao": "8.02. COMISSOES - RT",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1"
+    },
+    {
+      "descricao": "RECEITAS FINANCEIRAS",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1"
+    },
+    {
+      "descricao": "APORTE",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1"
+    },
+    {
+      "descricao": "8.01. REFORÇO",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1"
+    },
+    {
+      "descricao": "RECEITAS NÃO OPERACIONAIS - TRANSFERÊNCIA BANCÁRIA",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1"
+    },
+    {
+      "descricao": "RECEBIMENTO ESTACIONAMENTO CRÉDITO / DÉBITO",
+      "natureza": "CREDITO",
+      "grupoCodigo": "1"
+    },
+    {
+      "descricao": "TELEFONE FIXO / INTERNET",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "SISTEMAS / SOFTWARES",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "DESPESAS COM RECEPÇÃO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "HONORÁRIOS FINANCEIROS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "REFORMAS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "ALARME/SEGURANÇA",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "MARKETING",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "ENERGIA ELÉTRICA / LUZ",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "GÁS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "ESCOLA / FACULDADE / CURSOS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "SERVIÇOS ADM TERCEIRIZADOS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "MOTOBOY CONDICIONAL",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "FRETE SOB VENDA",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "HONORÁRIOS CONTABEIS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "CONDOMÍNIO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "HONORÁRIOS ADVOGADOS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "ASSOCIAÇÃO COMERCIAL",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "6.04. DOAÇÃO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "CARTÓRIO E EMOLUMENTOS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "BRINDES",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "DOMÍNIO / HOSPEDAGEM",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "3.05. EMBALAGENS PRESENTE",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "REUNIÕES / FEIRAS /  EVENTOS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "DEVOLUÇÕES",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "CONSELHO DE CLASSE",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "CONSULTORIA",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "MATERIAL DE HIGIENE E LIMPEZA",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "TELEFONE MÓVEL",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "SEGURO PREDIAL",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "ÁGUA MINERAL",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "MATERIAIS PARA O ESCRITÓRIO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "CORREIOS / CORRESPONDÊNCIAS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "ÁGUA",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "ALUGUEL",
+      "natureza": "DEBITO",
+      "grupoCodigo": "2"
+    },
+    {
+      "descricao": "ENTULHO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "3.11. EQUIPAMENTO DE TRABALHO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "3.14. MANUTENÇÃO ESCRITÓRIO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "3.07. TAXA ENTREGADOR",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "3.01. MERCADORIA",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "TRANSPORTE",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "INSUMO PARA PRODUÇÃO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "HOSPEDAGEM (HOTEL)",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "MANUTENÇÃO PREDIAL",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "PRODUTOS PARA MAQUINA DE CAFE",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "ALUGUEIS DE MAQUINAS E EQUIPAMENTOS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "PRODUTO DE REVENDA",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "LAVANDERIA",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "MANUTENÇÃO DE MÁQUINAS E EQUIPAMENTOS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "MANUTENÇÃO DE VEÍCULO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "3.10. SEGURO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "3.13. CERTIFICADO DIGITAL",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "3.08. SEGURANÇA",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "ALIMENTAÇÃO (VIAGENS)",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "MERCADORIA DE VENDA - ESTOQUE",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "MATÉRIA PRIMA - PRODUÇÃO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "BORDADO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "SERIGRAFIA",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "RT",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "PEDÁGIO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "STRETCH",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "DESPESAS GERAIS DE VIAGEM",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "COSTURA / FACÇÃO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "ENGENHEIRO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "LAUDOS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "PERÍCIAS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "COMISSÕES COMERCIAL EXTERNO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "COMISSÕES ADVOGADO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "USO CONSUMO OPERACIONAL",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "SERVIÇOS OPERACIONAIS TERCEIRIZADOS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "ART / RRT",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "MOTOBOY PRODUÇÃO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "3.02. FRETE SOB PRODUÇÃO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "3.04. SACOLAS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "3.12. PASSAGENS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "3.09. PRODUTOS DE LIMPEZA",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "USO E CONSUMO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "COMBUSTIVEL",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "PÁSSAROS PF",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "MANUTENÇÃO DE MAQUINAS E EQUIPAMENTOS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "MANUTENÇÃO DE MÓVEIS E UTENSÍLIOS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "AQUISIÇÃO DE PRODUTOS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "COMPRA DE PEÇAS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "DESPESAS REEMBOLSÁVEIS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "DESPESAS COM VEICULOS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "ALIMENTAÇÃO INTERNO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "COFFEE / EVENTOS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "VIAJENS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "3"
+    },
+    {
+      "descricao": "CURSOS E TREINAMENTOS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "4"
+    },
+    {
+      "descricao": "VALE TRANSPORTE",
+      "natureza": "DEBITO",
+      "grupoCodigo": "4"
+    },
+    {
+      "descricao": "CIGARRO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "4"
+    },
+    {
+      "descricao": "SALÁRIO EXTRA",
+      "natureza": "DEBITO",
+      "grupoCodigo": "4"
+    },
+    {
+      "descricao": "SEGURO DE VIDA",
+      "natureza": "DEBITO",
+      "grupoCodigo": "4"
+    },
+    {
+      "descricao": "3.03. COMISSÃO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "4"
+    },
+    {
+      "descricao": "ALUGUEL - PF",
+      "natureza": "DEBITO",
+      "grupoCodigo": "4"
+    },
+    {
+      "descricao": "VALE ADIANTAMENTO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "4"
+    },
+    {
+      "descricao": "EXAMES ADMISSIONAIS E DEMISSIONAIS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "4"
+    },
+    {
+      "descricao": "INDENIZAÇÕES E AVISOS PRÉVIOS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "4"
+    },
+    {
+      "descricao": "SERVIÇOS DE SEGURANÇA DO TRABALHO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "4"
+    },
+    {
+      "descricao": "FARMACIA",
+      "natureza": "DEBITO",
+      "grupoCodigo": "4"
+    },
+    {
+      "descricao": "UNIFORMES E EPIS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "4"
+    },
+    {
+      "descricao": "RESCISÃO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "4"
+    },
+    {
+      "descricao": "DIARISTA/ZELADORA",
+      "natureza": "DEBITO",
+      "grupoCodigo": "4"
+    },
+    {
+      "descricao": "FGTS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "4"
+    },
+    {
+      "descricao": "INSS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "4"
+    },
+    {
+      "descricao": "PLANO DE SAÚDE / ASSISTÊNCIA MÉDICA",
+      "natureza": "DEBITO",
+      "grupoCodigo": "4"
+    },
+    {
+      "descricao": "3.06. BONIFICAÇÃO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "4"
+    },
+    {
+      "descricao": "FÉRIAS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "4"
+    },
+    {
+      "descricao": "SALÁRIOS E ORDENADOS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "4"
+    },
+    {
+      "descricao": "VALE ALIMENTAÇÃO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "4"
+    },
+    {
+      "descricao": "13° SALÁRIO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "4"
+    },
+    {
+      "descricao": "PRÓ-LABORE",
+      "natureza": "DEBITO",
+      "grupoCodigo": "4"
+    },
+    {
+      "descricao": "TRANSFERENCIAS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "5"
+    },
+    {
+      "descricao": "JUROS E MULTAS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "5"
+    },
+    {
+      "descricao": "TAXAS DE TED / DOC",
+      "natureza": "DEBITO",
+      "grupoCodigo": "5"
+    },
+    {
+      "descricao": "MANUTENÇÃO DE CONTA BANCÁRIA",
+      "natureza": "DEBITO",
+      "grupoCodigo": "5"
+    },
+    {
+      "descricao": "TAXA PIX",
+      "natureza": "DEBITO",
+      "grupoCodigo": "5"
+    },
+    {
+      "descricao": "DESPESA DE BOLETO BANCARIO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "5"
+    },
+    {
+      "descricao": "5.01. DESCONTOS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "5"
+    },
+    {
+      "descricao": "5.05. OUTRAS TARIFAS BANCARIAS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "5"
+    },
+    {
+      "descricao": "EMPRÉSTIMOS / CAPITAL DE GIRO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "5"
+    },
+    {
+      "descricao": "ACORDO JUDICIAL",
+      "natureza": "DEBITO",
+      "grupoCodigo": "5"
+    },
+    {
+      "descricao": "5.05. TAXA CARTÕES CREDITO/DEBITO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "5"
+    },
+    {
+      "descricao": "6.05. OUTROS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "6"
+    },
+    {
+      "descricao": "CARTÃO DE DÉBITO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "6"
+    },
+    {
+      "descricao": "CARTÃO DE CRÉDITO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "6"
+    },
+    {
+      "descricao": "6.03. AJUSTE DE CARTEIRA",
+      "natureza": "DEBITO",
+      "grupoCodigo": "6"
+    },
+    {
+      "descricao": "6.01. SANGRIA",
+      "natureza": "DEBITO",
+      "grupoCodigo": "6"
+    },
+    {
+      "descricao": "DESPESAS NÃO IDENTIFICADAS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "6"
+    },
+    {
+      "descricao": "6.02. ESTORNO DE VENDAS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "6"
+    },
+    {
+      "descricao": "TAXA DE DESASTRE",
+      "natureza": "DEBITO",
+      "grupoCodigo": "8"
+    },
+    {
+      "descricao": "4.11. IPTU",
+      "natureza": "DEBITO",
+      "grupoCodigo": "8"
+    },
+    {
+      "descricao": "4.06. IOF",
+      "natureza": "DEBITO",
+      "grupoCodigo": "8"
+    },
+    {
+      "descricao": "DARF",
+      "natureza": "DEBITO",
+      "grupoCodigo": "8"
+    },
+    {
+      "descricao": "4.04. CSLL",
+      "natureza": "DEBITO",
+      "grupoCodigo": "8"
+    },
+    {
+      "descricao": "4.10. ISSQN",
+      "natureza": "DEBITO",
+      "grupoCodigo": "8"
+    },
+    {
+      "descricao": "4.12. TAXA DE LIXO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "8"
+    },
+    {
+      "descricao": "4.02. PIS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "8"
+    },
+    {
+      "descricao": "4.08. ALVARÁ",
+      "natureza": "DEBITO",
+      "grupoCodigo": "8"
+    },
+    {
+      "descricao": "4.07. ICMS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "8"
+    },
+    {
+      "descricao": "LICENCIAMENTO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "8"
+    },
+    {
+      "descricao": "IPVA",
+      "natureza": "DEBITO",
+      "grupoCodigo": "8"
+    },
+    {
+      "descricao": "VIGILANCIA SANITARIA",
+      "natureza": "DEBITO",
+      "grupoCodigo": "8"
+    },
+    {
+      "descricao": "4.05. IRPJ",
+      "natureza": "DEBITO",
+      "grupoCodigo": "8"
+    },
+    {
+      "descricao": "CONTRIBUIÇÃO SINDICAL",
+      "natureza": "DEBITO",
+      "grupoCodigo": "8"
+    },
+    {
+      "descricao": "4.03. COFINS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "8"
+    },
+    {
+      "descricao": "4.13. TAXA DOS BOMBEIROS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "8"
+    },
+    {
+      "descricao": "TAXA DE OCUPAÇÃO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "8"
+    },
+    {
+      "descricao": "4.01. DAS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "8"
+    },
+    {
+      "descricao": "4.14. OUTROS IMPOSTOS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "8"
+    },
+    {
+      "descricao": "IRPF",
+      "natureza": "DEBITO",
+      "grupoCodigo": "8"
+    },
+    {
+      "descricao": "IRRF",
+      "natureza": "DEBITO",
+      "grupoCodigo": "8"
+    },
+    {
+      "descricao": "4.09. MULTAS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "8"
+    },
+    {
+      "descricao": "COMPRA DE MÁQUINAS E EQUIPAMENTOS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "9"
+    },
+    {
+      "descricao": "OUTROS FINANCIAMENTOS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "9"
+    },
+    {
+      "descricao": "CONSÓRCIO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "9"
+    },
+    {
+      "descricao": "FINANCIAMENTO DE IMÓVEIS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "9"
+    },
+    {
+      "descricao": "FINANCIAMENTO DE VEICULO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "9"
+    },
+    {
+      "descricao": "COMPUTADORES E PERIFÉRICOS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "9"
+    },
+    {
+      "descricao": "IMÓVEIS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "9"
+    },
+    {
+      "descricao": "CONSTRUÇÃO",
+      "natureza": "DEBITO",
+      "grupoCodigo": "9"
+    },
+    {
+      "descricao": "COMPRA DE VEÍCULOS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "9"
+    },
+    {
+      "descricao": "MÓVEIS E UTENSÍLIOS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "9"
+    },
+    {
+      "descricao": "COTAS CAPITAIS",
+      "natureza": "DEBITO",
+      "grupoCodigo": "9"
+    }
+  ]
+}

@@ -5,6 +5,7 @@ import { parseYmdToUtcDate } from '../../utils/dates';
 import { str } from '../../utils/strings';
 import { mapLancamentoToRow } from './financeiro.mapper';
 import { resolveFormaPagamentoLancamento } from './resolve-forma-pagamento-lancamento';
+import { resolvePlanoContaLancamento } from './resolve-plano-conta-lancamento';
 
 export async function updateLancamentoFinanceiroUseCase(
 	tenantId: number,
@@ -60,8 +61,13 @@ export async function updateLancamentoFinanceiroUseCase(
 	if (Object.prototype.hasOwnProperty.call(body, 'numeroDocumento')) {
 		updateData.numeroDocumento = str(body.numeroDocumento);
 	}
-	if (Object.prototype.hasOwnProperty.call(body, 'contaGerencial')) {
-		updateData.contaGerencial = str(body.contaGerencial);
+	if (
+		Object.prototype.hasOwnProperty.call(body, 'contaGerencial') ||
+		Object.prototype.hasOwnProperty.call(body, 'planoContaId')
+	) {
+		const planoContaData = await resolvePlanoContaLancamento(tenantId, type, body);
+		updateData.planoContaId = planoContaData.planoContaId;
+		updateData.contaGerencial = planoContaData.contaGerencial;
 	}
 	if (Object.prototype.hasOwnProperty.call(body, 'pixChave')) {
 		const pixChave = str(body.pixChave);

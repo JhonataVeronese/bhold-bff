@@ -47,6 +47,11 @@ enum MovimentoContaTipo {
   AJUSTE
 }
 
+enum PlanoContaNatureza {
+  DEBITO
+  CREDITO
+}
+
 /// Empresa / organização (isolamento multi-tenant).
 model Tenant {
   id           Int      @id @default(autoincrement())
@@ -70,6 +75,8 @@ model Tenant {
   formasPagamento         FormaPagamento[]
   lancamentosFinanceiros  LancamentoFinanceiro[]
   movimentosContaEmpresa  MovimentoContaEmpresa[]
+  gruposPlanoContas       GrupoPlanoConta[]
+  planosContas            PlanoConta[]
 }
 
 model Fornecedor {
@@ -180,6 +187,8 @@ model LancamentoFinanceiro {
   contaBancariaDestino    ContaBancariaEmpresa? @relation("LancamentoContaDestino", fields: [contaBancariaDestinoId], references: [id], onDelete: SetNull)
   formaPagamentoId        Int?
   formaPagamento          FormaPagamento?      @relation(fields: [formaPagamentoId], references: [id], onDelete: Restrict)
+  planoContaId            Int?
+  planoConta              PlanoConta?          @relation(fields: [planoContaId], references: [id], onDelete: SetNull)
   fornecedorId            Int?
   fornecedor              Fornecedor?          @relation(fields: [fornecedorId], references: [id], onDelete: Restrict)
   clienteId               Int?
@@ -205,6 +214,7 @@ model LancamentoFinanceiro {
   @@index([contaBancariaTerceiroId])
   @@index([contaBancariaDestinoId])
   @@index([formaPagamentoId])
+  @@index([planoContaId])
   @@index([recorrenciaGrupoId])
 }
 
@@ -245,6 +255,44 @@ model MovimentoContaEmpresa {
   @@index([tenantId])
   @@index([contaBancariaEmpresaId])
   @@index([dataMovimento])
+}
+
+model GrupoPlanoConta {
+  id          Int                @id @default(autoincrement())
+  tenantId    Int
+  tenant      Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  codigo      String
+  descricao   String
+  nivel       Int
+  parentId    Int?
+  parent      GrupoPlanoConta?   @relation("GrupoPlanoContaHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children    GrupoPlanoConta[]  @relation("GrupoPlanoContaHierarchy")
+  contas      PlanoConta[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@unique([tenantId, codigo])
+  @@index([tenantId])
+  @@index([parentId])
+  @@index([tenantId, nivel])
+}
+
+model PlanoConta {
+  id         Int                @id @default(autoincrement())
+  tenantId   Int
+  tenant     Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  descricao  String
+  natureza   PlanoContaNatureza
+  grupoId    Int
+  grupo      GrupoPlanoConta    @relation(fields: [grupoId], references: [id], onDelete: Restrict)
+  lancamentos LancamentoFinanceiro[]
+  ativo      Boolean            @default(true)
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  @@index([tenantId])
+  @@index([grupoId])
+  @@index([tenantId, natureza])
 }
 
 model Usuario {
