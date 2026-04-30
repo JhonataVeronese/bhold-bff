@@ -46,7 +46,8 @@ async function seedPlanoContasForTenant(tenantId: number, payload: PlanoContasPa
 				codigo: item.codigo,
 				descricao: item.descricao,
 				nivel: item.nivel,
-				parentId
+				parentId,
+				systemDefault: true
 			}
 		});
 		gruposByCodigo.set(item.codigo, { id: grupo.id, codigoPai: item.codigoPai });
@@ -62,7 +63,8 @@ async function seedPlanoContasForTenant(tenantId: number, payload: PlanoContasPa
 					descricao: item.descricao,
 					natureza: item.natureza,
 					grupoId,
-					ativo: true
+					ativo: true,
+					systemDefault: true
 				};
 			})
 			.filter((item): item is NonNullable<typeof item> => Boolean(item))

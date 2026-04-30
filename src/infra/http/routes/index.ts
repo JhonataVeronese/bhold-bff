@@ -7,6 +7,7 @@ import { formaPagamentoRouter } from '../../../bhold/routes/forma-pagamento.rout
 import { fornecedorRouter } from '../../../bhold/routes/fornecedor.routes';
 import { financeiroExtratoRouter } from '../../../bhold/routes/financeiro-extrato.routes';
 import { financeiroRouter } from '../../../bhold/routes/financeiro.routes';
+import { planoContaRouter } from '../../../bhold/routes/plano-conta.routes';
 import { tenantRouter } from '../../../bhold/routes/tenant.routes';
 import { usuarioRouter } from '../../../bhold/routes/usuario.routes';
 import { authenticateJwtMiddleware } from '../middlewares/authenticateJwt';
@@ -44,6 +45,7 @@ router.use(requireTenantMiddleware);
 router.use('/fornecedores', fornecedorRouter);
 router.use('/contas-bancarias', contaBancariaRouter);
 router.use('/formas-pagamento', formaPagamentoRouter);
+router.use(planoContaRouter);
 router.use('/clientes', clienteRouter);
 router.use('/financeiro', financeiroExtratoRouter);
 router.use(financeiroRouter);
